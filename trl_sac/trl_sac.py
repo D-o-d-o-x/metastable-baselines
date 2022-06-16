@@ -14,9 +14,13 @@ from stable_baselines3.common.utils import polyak_update
 from stable_baselines3.sac.policies import CnnPolicy, MlpPolicy, MultiInputPolicy, SACPolicy
 
 
-class SAC(OffPolicyAlgorithm):
+class TRL_SAC(OffPolicyAlgorithm):
     """
-    Soft Actor-Critic (SAC)
+    Trust Region Layers (TRL) based on SAC (Soft Actor Critic)
+    This implementation is almost a 1:1-copy of the sb3-code for SAC.
+    Only minor changes have been made to implement Differential Trust Region Layers
+
+    Description from original SAC implementation:
     Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor,
     This implementation borrows code from original implementation (https://github.com/haarnoja/sac)
     from OpenAI Spinning Up (https://github.com/openai/spinningup), from the softlearning repo
