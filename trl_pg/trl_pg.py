@@ -95,8 +95,7 @@ class TRL_PG(OnPolicyAlgorithm):
         device: Union[th.device, str] = "auto",
 
         # Different from PPO:
-        importance_ratio_clip: Union[float, None] = 0.2
-        #TODO: projection: BaseProjectionLayer = None,
+        projection: BaseProjectionLayer = None,
 
         _init_setup_model: bool = True,
     ):
@@ -161,7 +160,7 @@ class TRL_PG(OnPolicyAlgorithm):
         self.target_kl = target_kl
 
         # Different from PPO:
-        self.importance_ratio_clip = importance_ratio_clip or 0.0
+        self.projection = projection
 
         if _init_setup_model:
             self._setup_model()
@@ -191,7 +190,9 @@ class TRL_PG(OnPolicyAlgorithm):
         if self.clip_range_vf is not None:
             clip_range_vf = self.clip_range_vf(self._current_progress_remaining)
 
+        surrogate_losses = []
         entropy_losses = []
+        trust_region_losses = []
         pg_losses, value_losses = [], []
         clip_fractions = []
 
@@ -221,10 +222,13 @@ class TRL_PG(OnPolicyAlgorithm):
                 # ratio between old and new policy, should be one at the first iteration
                 ratio = th.exp(log_prob - rollout_data.old_log_prob)
 
+                # Difference from PPO: We renamed 'policy_loss' to 'surrogate_loss'
                 # clipped surrogate loss
-                policy_loss_1 = advantages * ratio
-                policy_loss_2 = advantages * th.clamp(ratio, 1 - clip_range, 1 + clip_range)
-                policy_loss = -th.min(policy_loss_1, policy_loss_2).mean()
+                surrogate_loss_1 = advantages * ratio
+                surrogate_loss_2 = advantages * th.clamp(ratio, 1 - clip_range, 1 + clip_range)
+                surrogate_loss = -th.min(policy_loss_1, policy_loss_2).mean()
+
+                surrogate_losses.append(surrogate_loss.item())
 
                 # Logging
                 pg_losses.append(policy_loss.item())
@@ -253,7 +257,14 @@ class TRL_PG(OnPolicyAlgorithm):
 
                 entropy_losses.append(entropy_loss.item())
 
-                loss = policy_loss + self.ent_coef * entropy_loss + self.vf_coef * value_loss
+                # Difference to PPO: Added trust_region_loss; policy_loss includes entropy_loss + trust_region_loss
+                trust_region_loss = self.projection.get_trust_region_loss()#TODO: params
+
+                trust_region_losses.append(trust_region_loss.item())
+
+                policy_loss = surrogate_loss + self.ent_coef * entropy_loss + trust_region_loss
+
+                loss = policy_loss + self.vf_coef * value_loss
 
                 # Calculate approximate form of reverse KL Divergence for early stopping
                 # see issue #417: https://github.com/DLR-RM/stable-baselines3/issues/417
@@ -284,7 +295,9 @@ class TRL_PG(OnPolicyAlgorithm):
         explained_var = explained_variance(self.rollout_buffer.values.flatten(), self.rollout_buffer.returns.flatten())
 
         # Logs
+        self.logger.record("train/surrogate_loss", np.mean(surrogate_losses))
         self.logger.record("train/entropy_loss", np.mean(entropy_losses))
+        self.logger.record("train/trust_region_loss", np.mean(trust_region_losses))
         self.logger.record("train/policy_gradient_loss", np.mean(pg_losses))
         self.logger.record("train/value_loss", np.mean(value_losses))
         self.logger.record("train/approx_kl", np.mean(approx_kl_divs))
