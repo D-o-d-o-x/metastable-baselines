@@ -322,7 +322,7 @@ class TRL_PG(OnPolicyAlgorithm):
         eval_env: Optional[GymEnv] = None,
         eval_freq: int = -1,
         n_eval_episodes: int = 5,
-        tb_log_name: str = "PPO",
+        tb_log_name: str = "TRL_PG",
         eval_log_path: Optional[str] = None,
         reset_num_timesteps: bool = True,
     ) -> "TRL_PG":

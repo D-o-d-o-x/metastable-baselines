@@ -19,6 +19,7 @@ def main():
         "MlpPolicy",
         env,
         verbose=0,
+        tensorboard_log="./logs_tb/test/",
     )
     trl = TRL_PG(
         "MlpPolicy",
