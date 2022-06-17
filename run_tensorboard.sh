@@ -1,2 +1,2 @@
 #!/bin/bash
-tensorboard --logdir logs_tb/test
+tensorboard --logdir logs_tb
