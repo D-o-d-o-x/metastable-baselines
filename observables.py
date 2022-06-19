@@ -8,6 +8,9 @@ class Observable():
         self.obs = None
         pass
 
+    def _set_env(self, env):
+        self.env = env
+
     def get_observation_space():
         print("[!] Using dummyObservable. Env won't output anything")
         return spaces.Box(low=0, high=255,
@@ -27,9 +30,6 @@ class CnnObservable(Observable):
             self.scaler = pygame.transform.smoothscale
         else:
             self.scaler = pygame.transform.scale
-
-    def _set_env(self, env):
-        self.env = env
 
     def get_observation_space(self):
         return spaces.Box(low=0, high=255,
