@@ -1,5 +1,5 @@
 from time import sleep, time
-from env import ColumbusEnv
+from env import ColumbusEnv, ColumbusTest3_1
 import numpy as np
 import pygame
 
@@ -7,7 +7,7 @@ from observables import Observable, CnnObservable
 
 
 def main():
-    env = ColumbusEnv(fps=60, observable=CnnObservable())
+    env = ColumbusTest3_1()
     env.start_pos = [0.6, 0.3]
     playEnv(env)
     env.close()

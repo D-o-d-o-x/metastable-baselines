@@ -4,7 +4,8 @@ import numpy as np
 import pygame
 import random as random_dont_use
 import math
-from . import entities, observables
+import entities
+import observables
 
 
 class ColumbusEnv(gym.Env):
@@ -204,4 +205,5 @@ class ColumbusEnv(gym.Env):
 
 class ColumbusTest3_1(ColumbusEnv):
     def __init__(self):
-        super(ColumbusEnv, self).__init__(observables.CnnObservable())
+        super(ColumbusTest3_1, self).__init__(
+            observable=observables.CnnObservable())
