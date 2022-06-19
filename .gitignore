@@ -2,3 +2,4 @@ logs_tb
 __pycache__
 *.pyc
 *.pyo
+model*.zip
