@@ -4,8 +4,7 @@ import numpy as np
 import pygame
 import random as random_dont_use
 import math
-import entities
-import observables
+from . import entities, observables
 
 
 class ColumbusEnv(gym.Env):
