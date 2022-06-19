@@ -10,14 +10,15 @@ from sb3_trl.trl_pg import TRL_PG
 from subtrees.columbus import env
 
 register(
-    id='Columbus_Test3.1-v0',
-    entry_point=env.ColumbusEnv,
+    id='ColumbusTest3.1-v0',
+    entry_point=env.ColumbusTest3_1,
     max_episode_steps=1000,
 )
 
 def main():
     #env = gym.make("LunarLander-v2")
-    env = gym.make("Columbus_test3.1-v0")
+    env = gym.make("ColumbusTest3.1-v0")
+    
     ppo = PPO(
         "MlpPolicy",
         env,
