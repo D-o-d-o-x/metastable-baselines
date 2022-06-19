@@ -200,3 +200,8 @@ class ColumbusEnv(gym.Env):
     def close(self):
         pygame.display.quit()
         pygame.quit()
+
+
+class ColumbusTest3_1(ColumbusEnv):
+    def __init__(self):
+        super(ColumbusEnv, self).__init__(observables.CnnObservable())
