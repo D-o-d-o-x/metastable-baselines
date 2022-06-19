@@ -72,7 +72,7 @@ class Enemy(Entity):
     def __init__(self, env):
         super(Enemy, self).__init__(env)
         self.col = (255, 0, 0)
-        self.damage = 10
+        self.damage = 100
 
     def on_collision(self, other):
         if isinstance(other, Agent):

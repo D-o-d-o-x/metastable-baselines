@@ -26,6 +26,7 @@ class ColumbusEnv(gym.Env):
         self.screen = None
         self.width = 720
         self.height = 720
+        self.start_pos = (0.5, 0.5)
         self.speed_fac = 0.01/fps*60
         self.acc_fac = 0.03/fps*60
         self.agent_drag = 0  # 0.01 is a good value
@@ -139,6 +140,7 @@ class ColumbusEnv(gym.Env):
         self.entities = newEntities
 
     def setup(self):
+        self.agent.pos = self.start_pos
         for i in range(18):
             enemy = entities.CircleBarrier(self)
             enemy.radius = self.random()*40+50
