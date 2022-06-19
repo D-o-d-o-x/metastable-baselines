@@ -8,6 +8,7 @@ from observables import Observable, CnnObservable
 
 def main():
     env = ColumbusEnv(fps=60, observable=CnnObservable())
+    env.start_pos = [0.6, 0.3]
     playEnv(env)
     env.close()
 
