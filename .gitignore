@@ -3,3 +3,5 @@ __pycache__
 *.pyc
 *.pyo
 model*.zip
+models
+models/*
