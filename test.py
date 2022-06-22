@@ -23,7 +23,7 @@ def main(env_name='ColumbusStateWithBarriers-v0'):
         env,
         verbose=0,
         tensorboard_log=root_path+"/logs_tb/"+env_name+"/ppo_latent_sde/",
-        #use_sde=True,
+        use_sde=True,
         sde_sample_freq=30*15,
         #ent_coef=0.0016/1.25, #0.0032
         #vf_coef=0.00025/2, #0.0005
@@ -49,7 +49,7 @@ def main(env_name='ColumbusStateWithBarriers-v0'):
     #)
 
     print('PPO_LATENT_SDE:')
-    testModel(ppo_latent_sde, 25000, showRes = True, saveModel=True, n_eval_episodes=3)
+    testModel(ppo_latent_sde, 500000, showRes = True, saveModel=True, n_eval_episodes=3)
     #print('SAC_LATENT_SDE:')
     #testModel(sac_latent_sde, 250000, showRes = True, saveModel=True, n_eval_episodes=0)
     #print('TRL_PG:')
@@ -74,8 +74,8 @@ def testModel(model, timesteps=150000, showRes=False, saveModel=False, n_eval_ep
         obs = env.reset()
         # Evaluate the agent
         episode_reward = 0
-        for _ in range(30*60*5):
-            time.sleep(1/30)
+        while True:
+            time.sleep(1/env.fps)
             action, _ = model.predict(obs, deterministic=False)
             obs, reward, done, info = env.step(action)
             env.render()
