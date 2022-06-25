@@ -17,7 +17,7 @@ import columbus
 root_path = '.'
 
 
-def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=5000, showRes=False, saveModel=True, n_eval_episodes=8):
+def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=50000, showRes=False, saveModel=True, n_eval_episodes=16):
     env = gym.make(env_name)
     test_sde = False
     ppo = PPO(
@@ -87,11 +87,11 @@ def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=5000, showRes=False, s
     #    learning_rate=0.001 # 0.015
     # )
 
-    print('PPO:')
-    testModel(ppo, timesteps, showRes,
-              saveModel, n_eval_episodes)
     print('TRL_PG:')
     testModel(trl_pg, timesteps, showRes,
+              saveModel, n_eval_episodes)
+    print('PPO:')
+    testModel(ppo, timesteps, showRes,
               saveModel, n_eval_episodes)
 
 
@@ -131,4 +131,4 @@ def testModel(model, timesteps, showRes=False, saveModel=False, n_eval_episodes=
 
 
 if __name__ == '__main__':
-    main('CartPole-v1')
+    main('LunarLanderContinuous-v2')
