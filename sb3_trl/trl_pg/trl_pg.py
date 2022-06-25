@@ -230,6 +230,7 @@ class TRL_PG(OnPolicyAlgorithm):
                 # values, log_prob, entropy = self.policy.evaluate_actions(rollout_data.observations, actions)
 
                 # src in TRL reference code:
+                # Stolen from Fabian's Code (Public Version):
                 # p = self.policy(rollout_data.observations)
                 # proj_p = self.projection(self.policy, p, b_q = (b_old_mean, b_old_std), self._global_step)
                 # new_logpacs = self.policy.log_probability(proj_p, b_actions)
