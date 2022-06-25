@@ -247,7 +247,6 @@ class TRL_PG(OnPolicyAlgorithm):
                 # p = self.policy(rollout_data.observations)
                 # proj_p = self.projection(self.policy, p, b_q = (b_old_mean, b_old_std), self._global_step)
                 # new_logpacs = self.policy.log_probability(proj_p, b_actions)
-                # log_prob == new_pogpacs (i think)
 
                 # src of evaluate_actions:
                 # pol = self.policy
@@ -278,8 +277,6 @@ class TRL_PG(OnPolicyAlgorithm):
                 log_prob = proj_p.log_prob(actions).sum(dim=1)
                 values = self.policy.value_net(latent_vf)
                 entropy = proj_p.entropy()
-
-                # log_prob = p.log_prob(actions)
 
                 values = values.flatten()
                 # Normalize advantage
