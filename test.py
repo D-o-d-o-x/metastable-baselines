@@ -16,21 +16,66 @@ import columbus
 #root_path = os.getcwd()
 root_path = '.'
 
-def main(env_name='ColumbusStateWithBarriers-v0'):
+
+def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=5000, showRes=False, saveModel=True, n_eval_episodes=8):
     env = gym.make(env_name)
-    ppo_latent_sde = PPO(
+    test_sde = False
+    ppo = PPO(
         "MlpPolicy",
         env,
         verbose=0,
-        tensorboard_log=root_path+"/logs_tb/"+env_name+"/ppo_latent_sde/",
-        use_sde=True,
-        sde_sample_freq=30*15,
-        #ent_coef=0.0016/1.25, #0.0032
-        #vf_coef=0.00025/2, #0.0005
-        #gamma=0.99, # 0.95
-        #learning_rate=0.005/5 # 0.015
+        tensorboard_log=root_path+"/logs_tb/"+env_name+"/ppo/",
+        learning_rate=3e-4,
+        gamma=0.99,
+        gae_lambda=0.95,
+        normalize_advantage=True,
+        ent_coef=0.15,  # 0.1
+        vf_coef=0.5,
+        use_sde=False,  # False
     )
-    #sac_latent_sde = SAC(
+    trl_pg = TRL_PG(
+        "MlpPolicy",
+        env,
+        verbose=0,
+        tensorboard_log=root_path+"/logs_tb/"+env_name+"/trl_pg/",
+        learning_rate=3e-4,
+        gamma=0.99,
+        gae_lambda=0.95,
+        normalize_advantage=True,
+        ent_coef=0.15,  # 0.1
+        vf_coef=0.5,
+        use_sde=False,  # False
+    )
+    if test_sde:
+        ppo_latent_sde = PPO(
+            "MlpPolicy",
+            env,
+            verbose=0,
+            tensorboard_log=root_path+"/logs_tb/"+env_name+"/ppo_latent_sde/",
+            learning_rate=3e-4,
+            gamma=0.99,
+            gae_lambda=0.95,
+            normalize_advantage=True,
+            ent_coef=0.15,  # 0.1
+            vf_coef=0.5,
+            use_sde=True,  # False
+            sde_sample_freq=30*15,  # -1
+        )
+        trl_pg_latent_sde = TRL_PG(
+            "MlpPolicy",
+            env,
+            verbose=0,
+            tensorboard_log=root_path+"/logs_tb/"+env_name+"/trl_pg_latent_sde/",
+            learning_rate=3e-4,
+            gamma=0.99,
+            gae_lambda=0.95,
+            normalize_advantage=True,
+            ent_coef=0.15,  # 0.1
+            vf_coef=0.5,
+            use_sde=True,  # False
+            sde_sample_freq=30*15,  # -1
+        )
+    # sac_latent_sde = SAC(
     #    "MlpPolicy",
     #    env,
     #    verbose=0,
@@ -40,34 +85,32 @@ def main(env_name='ColumbusStateWithBarriers-v0'):
     #    ent_coef=0.0016, #0.0032
     #    gamma=0.99, # 0.95
     #    learning_rate=0.001 # 0.015
-    #)
-    #trl = TRL_PG(
-    #    "MlpPolicy",
-    #    env,
-    #    verbose=0,
-    #    tensorboard_log="./logs_tb/"+env_name+"/trl_pg/",
-    #)
+    # )
 
-    print('PPO_LATENT_SDE:')
-    testModel(ppo_latent_sde, 500000, showRes = True, saveModel=True, n_eval_episodes=3)
-    #print('SAC_LATENT_SDE:')
-    #testModel(sac_latent_sde, 250000, showRes = True, saveModel=True, n_eval_episodes=0)
-    #print('TRL_PG:')
-    #testModel(trl)
+    print('PPO:')
+    testModel(ppo, timesteps, showRes,
+              saveModel, n_eval_episodes)
+    print('TRL_PG:')
+    testModel(trl_pg, timesteps, showRes,
+              saveModel, n_eval_episodes)
 
 
-def testModel(model, timesteps=150000, showRes=False, saveModel=False, n_eval_episodes=16):
+def testModel(model, timesteps, showRes=False, saveModel=False, n_eval_episodes=16):
     env = model.get_env()
     model.learn(timesteps)
 
     if saveModel:
         now = datetime.datetime.now().strftime('%d.%m.%Y-%H:%M')
-        loc = root_path+'/models/'+model.tensorboard_log.replace(root_path+'/logs_tb/','').replace('/','_')+now+'.zip'
+        loc = root_path+'/models/' + \
+            model.tensorboard_log.replace(
+                root_path+'/logs_tb/', '').replace('/', '_')+now+'.zip'
         model.save(loc)
 
     if n_eval_episodes:
-        mean_reward, std_reward = evaluate_policy(model, env, n_eval_episodes=n_eval_episodes, deterministic=False)
-        print('Reward: '+str(round(mean_reward,3))+'±'+str(round(std_reward,2)))
+        mean_reward, std_reward = evaluate_policy(
+            model, env, n_eval_episodes=n_eval_episodes, deterministic=False)
+        print('Reward: '+str(round(mean_reward, 3)) +
+              '±'+str(round(std_reward, 2)))
 
     if showRes:
         input('<ready?>')
@@ -75,7 +118,7 @@ def testModel(model, timesteps=150000, showRes=False, saveModel=False, n_eval_ep
         # Evaluate the agent
         episode_reward = 0
         while True:
-            time.sleep(1/env.fps)
+            time.sleep(1/30)
             action, _ = model.predict(obs, deterministic=False)
             obs, reward, done, info = env.step(action)
             env.render()
@@ -86,5 +129,6 @@ def testModel(model, timesteps=150000, showRes=False, saveModel=False, n_eval_ep
                 obs = env.reset()
     env.reset()
 
-if __name__=='__main__':
-    main()
+
+if __name__ == '__main__':
+    main('CartPole-v1')
