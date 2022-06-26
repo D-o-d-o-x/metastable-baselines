@@ -17,7 +17,7 @@ import columbus
 root_path = '.'
 
 
-def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=50000, showRes=False, saveModel=True, n_eval_episodes=16):
+def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=500000, showRes=True, saveModel=True, n_eval_episodes=0):
     env = gym.make(env_name)
     test_sde = False
     ppo = PPO(
@@ -29,7 +29,7 @@ def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=50000, showRes=False, 
         gamma=0.99,
         gae_lambda=0.95,
         normalize_advantage=True,
-        ent_coef=0.15,  # 0.1
+        ent_coef=0.1,  # 0.1
         vf_coef=0.5,
         use_sde=False,  # False
     )
@@ -42,7 +42,7 @@ def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=50000, showRes=False, 
         gamma=0.99,
         gae_lambda=0.95,
         normalize_advantage=True,
-        ent_coef=0.15,  # 0.1
+        ent_coef=0.1,  # 0.1
         vf_coef=0.5,
         use_sde=False,  # False
     )
@@ -90,9 +90,9 @@ def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=50000, showRes=False, 
     print('TRL_PG:')
     testModel(trl_pg, timesteps, showRes,
               saveModel, n_eval_episodes)
-    print('PPO:')
-    testModel(ppo, timesteps, showRes,
-              saveModel, n_eval_episodes)
+    #print('PPO:')
+    #testModel(ppo, timesteps, showRes,
+    #          saveModel, n_eval_episodes)
 
 
 def testModel(model, timesteps, showRes=False, saveModel=False, n_eval_episodes=16):
