@@ -12,7 +12,7 @@ def get_mean_and_chol(p, expand=False):
     elif isinstance(p, th.distributions.MultivariateNormal):
         return p.mean, p.scale_tril
     elif isinstance(p, SB3_Distribution):
-        return get_mean_and_chol(p.distribution)
+        return get_mean_and_chol(p.distribution, expand=expand)
     else:
         raise Exception('Dist-Type not implemented')
 
@@ -26,6 +26,24 @@ def get_cov(p):
         return get_cov(p.distribution)
     else:
         raise Exception('Dist-Type not implemented')
+
+
+def has_diag_cov(p, numerical_check=True):
+    if isinstance(p, SB3_Distribution):
+        return has_diag_cov(p.distribution, numerical_check=numerical_check)
+    if isinstance(p, th.distributions.Normal):
+        return True
+    if not numerical_check:
+        return False
+    # Check if matrix is diag
+    cov = get_cov(p)
+    return th.equal(cov - th.diag_embed(th.diagonal(cov, dim1=-2, dim2=-1), th.zeros_like(cov)))
+
+
+def get_diag_cov_vec(p, check_diag=True, numerical_check=True):
+    if check_diag and not has_diag_cov(p):
+        raise Exception('Cannot reduce cov-mat to diag-vec: Is not diagonal')
+    return th.diagonal(get_cov(p), dim1=-2, dim2=-1)
 
 
 def new_dist_like(orig_p, mean, chol):
