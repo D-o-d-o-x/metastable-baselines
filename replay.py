@@ -10,7 +10,7 @@ from stable_baselines3 import SAC, PPO, A2C
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.policies import ActorCriticCnnPolicy, ActorCriticPolicy, MultiInputActorCriticPolicy
 
-from sb3_trl.trl_pg import TRL_PG
+from metastable_baselines.trl_pg import TRL_PG
 import columbus
 
 

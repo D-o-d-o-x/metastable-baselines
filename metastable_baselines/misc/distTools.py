@@ -17,6 +17,18 @@ def get_mean_and_chol(p, expand=False):
         raise Exception('Dist-Type not implemented')
 
 
+def get_mean_and_sqrt(p):
+    raise Exception('Not yet implemented...')
+    if isinstance(p, th.distributions.Normal):
+        return p.mean, p.stddev
+    elif isinstance(p, th.distributions.MultivariateNormal):
+        return p.mean, p.scale_tril
+    elif isinstance(p, SB3_Distribution):
+        return get_mean_and_chol(p.distribution)
+    else:
+        raise Exception('Dist-Type not implemented')
+
+
 def get_cov(p):
     if isinstance(p, th.distributions.Normal):
         return th.diag_embed(p.variance)

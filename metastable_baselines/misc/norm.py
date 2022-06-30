@@ -7,9 +7,9 @@ def mahalanobis_alt(u, v, std):
     return th.triangular_solve(delta, std, upper=False)[0].pow(2).sum([-2, -1])
 
 
-def mahalanobis(u, v, cov):
+def mahalanobis(u, v, chol):
     delta = u - v
-    return _batch_mahalanobis(cov, delta)
+    return _batch_mahalanobis(chol, delta)
 
 
 def frob_sq(diff, is_spd=False):

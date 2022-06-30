@@ -10,16 +10,16 @@ from stable_baselines3 import SAC, PPO, A2C
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.policies import ActorCriticCnnPolicy, ActorCriticPolicy, MultiInputActorCriticPolicy
 
-from sb3_trl.trl_pg import TRL_PG
+from metastable_baselines.trl_pg import TRL_PG
 import columbus
 
 #root_path = os.getcwd()
 root_path = '.'
 
 
-def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=200_000, showRes=True, saveModel=True, n_eval_episodes=0):
+def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=10_000_000, showRes=True, saveModel=True, n_eval_episodes=0):
     env = gym.make(env_name)
-    use_sde = False
+    use_sde = True
     ppo = PPO(
         "MlpPolicy",
         env,
@@ -54,8 +54,8 @@ def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=200_000, showRes=True,
     print('TRL_PG:')
     testModel(trl_pg, timesteps, showRes,
               saveModel, n_eval_episodes)
-    #print('PPO:')
-    #testModel(ppo, timesteps, showRes,
+    # print('PPO:')
+    # testModel(ppo, timesteps, showRes,
     #          saveModel, n_eval_episodes)
 
 
@@ -100,7 +100,7 @@ def testModel(model, timesteps, showRes=False, saveModel=False, n_eval_episodes=
 
 
 if __name__ == '__main__':
-    main('LunarLanderContinuous-v2')
-    #main('ColumbusJustState-v0')
-    #main('ColumbusStateWithBarriers-v0')
-    #main('ColumbusEasierObstacles-v0')
+    # main('LunarLanderContinuous-v2')
+    # main('ColumbusJustState-v0')
+    # main('ColumbusStateWithBarriers-v0')
+    main('ColumbusEasierObstacles-v0')
