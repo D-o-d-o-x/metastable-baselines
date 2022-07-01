@@ -1,4 +1,4 @@
 gym
 stable_baselines3
 tensorboard
-cpp_projection
+CppProjection
