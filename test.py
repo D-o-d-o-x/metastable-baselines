@@ -72,7 +72,6 @@ def testModel(model, timesteps, showRes=False, saveModel=False, n_eval_episodes=
         loc = root_path+'/models/' + \
             model.tensorboard_log.replace(
                 root_path+'/logs_tb/', '').replace('/', '_')+now+'.zip'
-        print(model.get_parameters())
         model.save(loc)
 
     if n_eval_episodes:
