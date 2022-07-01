@@ -1,4 +1,4 @@
-#!./.venv/bin/python3.10
+#!/usr/bin/python3.10
 import gym
 from gym.envs.registration import register
 import numpy as np
