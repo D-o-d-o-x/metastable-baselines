@@ -19,7 +19,7 @@ root_path = '.'
 
 def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=10_000_000, showRes=True, saveModel=True, n_eval_episodes=0):
     env = gym.make(env_name)
-    use_sde = True
+    use_sde = False
     ppo = PPO(
         "MlpPolicy",
         env,
@@ -101,5 +101,5 @@ def testModel(model, timesteps, showRes=False, saveModel=False, n_eval_episodes=
 if __name__ == '__main__':
     # main('LunarLanderContinuous-v2')
     # main('ColumbusJustState-v0')
-    # main('ColumbusStateWithBarriers-v0')
-    main('ColumbusEasierObstacles-v0')
+    main('ColumbusStateWithBarriers-v0')
+    # main('ColumbusEasierObstacles-v0')
