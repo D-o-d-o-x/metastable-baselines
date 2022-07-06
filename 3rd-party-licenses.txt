@@ -18,7 +18,8 @@ Name: Differentiable Trust Region Layers for Deep Reinforcement Learning
 Version: git:a1bada8b
 URL: https://github.com/boschresearch/trust-region-layers
 License: AGPL-v3.0
-Copyright: Copyright (c) 2021 Bosch
+Copyright: Copyright (c) 2021 Robert Bosch GmbH
+Author: Fabian Otto
 
 ALRhub/ITPAL:
 
