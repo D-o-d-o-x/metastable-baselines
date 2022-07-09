@@ -12,6 +12,7 @@ from stable_baselines3.common.distributions import Distribution as SB3_Distribut
 from stable_baselines3.common.distributions import DiagGaussianDistribution
 
 from ..misc.fakeModule import FakeModule
+from ..misc.distTools import new_dist_like
 
 # TODO: Integrate and Test what I currently have before adding more complexity
 # TODO: Support Squashed Dists (tanh)
@@ -95,6 +96,19 @@ class UniversalGaussianDistribution(SB3_Distribution):
         self.prob_squashing_type = ProbSquashingType.TANH
 
         self.distribution = None
+
+    def new_dist_like_me(self, mean, pseudo_chol):
+        p = self.distribution
+        np = new_dist_like(p, mean, pseudo_chol)
+        new = UniversalGaussianDistribution(self.action_dim)
+        new.par_strength = self.par_strength
+        new.cov_strength = self.cov_strength
+        new.par_type = self.par_type
+        new.enforce_positive_type = self.enforce_positive_type
+        new.prob_squashing_type = self.prob_squashing_type
+        new.distribution = np
+
+        return new
 
     def proba_distribution_net(self, latent_dim: int, log_std_init: float = 0.0) -> Tuple[nn.Module, nn.Module]:
         """

@@ -2,6 +2,8 @@ import torch as th
 
 from stable_baselines3.common.distributions import Distribution as SB3_Distribution
 
+from metastable_baselines.distributions.distributions import UniversalGaussianDistribution
+
 
 def get_mean_and_chol(p, expand=False):
     if isinstance(p, th.distributions.Normal):
@@ -64,7 +66,9 @@ def get_diag_cov_vec(p, check_diag=True, numerical_check=True):
 
 
 def new_dist_like(orig_p, mean, chol):
-    if isinstance(orig_p, th.distributions.Normal):
+    if isinstance(orig_p, UniversalGaussianDistribution):
+        return orig_p.new_list_like_me(mean, chol)
+    elif isinstance(orig_p, th.distributions.Normal):
         if orig_p.stddev.shape != chol.shape:
             chol = th.diagonal(chol, dim1=1, dim2=2)
         return th.distributions.Normal(mean, chol)
