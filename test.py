@@ -6,12 +6,12 @@ import os
 import time
 import datetime
 
-from stable_baselines3 import SAC, PPO, A2C
+from stable_baselines3 import
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.policies import ActorCriticCnnPolicy, ActorCriticPolicy, MultiInputActorCriticPolicy
 
-from metastable_baselines.trl_pg import TRL_PG
-from metastable_baselines.trl_pg.policies import MlpPolicy
+from metastable_baselines.ppo import PPO
+from metastable_baselines.ppo.policies import MlpPolicy
 from metastable_baselines.projections import BaseProjectionLayer, FrobeniusProjectionLayer, WassersteinProjectionLayer, KLProjectionLayer
 import columbus
 
@@ -22,7 +22,7 @@ root_path = '.'
 def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=10_000_000, showRes=True, saveModel=True, n_eval_episodes=0):
     env = gym.make(env_name)
     use_sde = False
-    ppo = TRL_PG(
+    ppo = PPO(
         MlpPolicy,
         env,
         verbose=0,
@@ -37,13 +37,13 @@ def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=10_000_000, showRes=Tr
         use_sde=use_sde,  # False
         clip_range=0.2,
     )
-    trl_pg = TRL_PG(
+    trl_frob = PPO(
         MlpPolicy,
         env,
         projection=FrobeniusProjectionLayer(),
         verbose=0,
         tensorboard_log=root_path+"/logs_tb/"+env_name +
-        "/trl_pg"+(['', '_sde'][use_sde])+"/",
+        "/trl_frob"+(['', '_sde'][use_sde])+"/",
         learning_rate=3e-4,
         gamma=0.99,
         gae_lambda=0.95,
@@ -54,11 +54,11 @@ def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=10_000_000, showRes=Tr
         clip_range=2,  # 0.2
     )
 
-    print('TRL_PG:')
-    testModel(trl_pg, timesteps, showRes,
-              saveModel, n_eval_episodes)
     print('PPO:')
     testModel(ppo, timesteps, showRes,
+              saveModel, n_eval_episodes)
+    print('TRL_frob:')
+    testModel(trl_frob, timesteps, showRes,
               saveModel, n_eval_episodes)
 
 
