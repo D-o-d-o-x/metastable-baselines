@@ -41,8 +41,8 @@ class ParametrizationType(Enum):
     CHOL = 1
     SPHERICAL_CHOL = 2
     # Not (yet?) implemented:
-    #GIVENS = 3
-    #NNLN_EIGEN = 4
+    # GIVENS = 3
+    # NNLN_EIGEN = 4
 
 
 class EnforcePositiveType(Enum):
@@ -360,13 +360,15 @@ class CholNet(nn.Module):
         raise Exception()
 
     def _chol_from_flat(self, flat_chol):
-        chol = fill_triangular(flat_chol).expand(self._flat_chol_len, -1, -1)
+        # chol = fill_triangular(flat_chol).expand(self._flat_chol_len, -1, -1)
+        chol = fill_triangular(flat_chol)
         return self._ensure_diagonal_positive(chol)
 
     def _chol_from_flat_sphe_chol(self, flat_sphe_chol):
         pos_flat_sphe_chol = self._ensure_positive_func(flat_sphe_chol)
-        sphe_chol = fill_triangular(pos_flat_sphe_chol).expand(
-            self._flat_chol_len, -1, -1)
+        # sphe_chol = fill_triangular(pos_flat_sphe_chol).expand(
+        #    self._flat_chol_len, -1, -1)
+        sphe_chol = fill_triangular(pos_flat_sphe_chol)
         chol = self._chol_from_sphe_chol(sphe_chol)
         return chol
 

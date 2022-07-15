@@ -246,7 +246,7 @@ class PPO(GaussianRolloutCollectorAuxclass, OnPolicyAlgorithm):
                 p = pol._get_action_dist_from_latent(latent_pi)
                 p_dist = p.distribution
                 q_dist = new_dist_like(
-                    p_dist, rollout_data.means, rollout_data.stds)
+                    p_dist, rollout_data.means, rollout_data.chols)
                 proj_p = self.projection(p_dist, q_dist, self._global_steps)
                 if isinstance(p_dist, th.distributions.Normal):
                     # Normal uses a weird mapping from dimensions into batch_shape
