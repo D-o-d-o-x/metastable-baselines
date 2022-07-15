@@ -95,6 +95,7 @@ class ActorCriticPolicy(BasePolicy):
         normalize_images: bool = True,
         optimizer_class: Type[th.optim.Optimizer] = th.optim.Adam,
         optimizer_kwargs: Optional[Dict[str, Any]] = None,
+        dist_kwargs: Optional[Dict[str, Any]] = None,
     ):
 
         if optimizer_kwargs is None:
@@ -130,15 +131,16 @@ class ActorCriticPolicy(BasePolicy):
 
         self.normalize_images = normalize_images
         self.log_std_init = log_std_init
-        dist_kwargs = None
         # Keyword arguments for gSDE distribution
         if use_sde:
-            dist_kwargs = {
+            add_dist_kwargs = {
                 "full_std": full_std,
                 "squash_output": squash_output,
                 "use_expln": use_expln,
                 "learn_features": False,
             }
+            for k in add_dist_kwargs:
+                dist_kwargs[k] = add_dist_kwargs[k]
 
         if sde_net_arch is not None:
             warnings.warn(

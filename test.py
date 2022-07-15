@@ -6,25 +6,28 @@ import os
 import time
 import datetime
 
-from stable_baselines3 import
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.policies import ActorCriticCnnPolicy, ActorCriticPolicy, MultiInputActorCriticPolicy
 
 from metastable_baselines.ppo import PPO
+# from metastable_baselines.sac import SAC
 from metastable_baselines.ppo.policies import MlpPolicy
 from metastable_baselines.projections import BaseProjectionLayer, FrobeniusProjectionLayer, WassersteinProjectionLayer, KLProjectionLayer
 import columbus
 
-#root_path = os.getcwd()
+from metastable_baselines.distributions import Strength, ParametrizationType, EnforcePositiveType, ProbSquashingType
+
 root_path = '.'
 
 
-def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=10_000_000, showRes=True, saveModel=True, n_eval_episodes=0):
+def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=2_000_000, showRes=True, saveModel=True, n_eval_episodes=0):
     env = gym.make(env_name)
     use_sde = False
     ppo = PPO(
         MlpPolicy,
         env,
+        policy_kwargs={'dist_kwargs': {'neural_strength': Strength.DIAG, 'cov_strength': Strength.DIAG, 'parameterization_type':
+                       ParametrizationType.NONE, 'enforce_positive_type': EnforcePositiveType.ABS, 'prob_squashing_type': ProbSquashingType.NONE}},
         verbose=0,
         tensorboard_log=root_path+"/logs_tb/" +
         env_name+"/ppo"+(['', '_sde'][use_sde])+"/",
@@ -37,29 +40,29 @@ def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=10_000_000, showRes=Tr
         use_sde=use_sde,  # False
         clip_range=0.2,
     )
-    trl_frob = PPO(
-        MlpPolicy,
-        env,
-        projection=FrobeniusProjectionLayer(),
-        verbose=0,
-        tensorboard_log=root_path+"/logs_tb/"+env_name +
-        "/trl_frob"+(['', '_sde'][use_sde])+"/",
-        learning_rate=3e-4,
-        gamma=0.99,
-        gae_lambda=0.95,
-        normalize_advantage=True,
-        ent_coef=0.03,  # 0.1
-        vf_coef=0.5,
-        use_sde=use_sde,
-        clip_range=2,  # 0.2
-    )
+    # trl_frob = PPO(
+    #    MlpPolicy,
+    #    env,
+    #    projection=FrobeniusProjectionLayer(),
+    #    verbose=0,
+    #    tensorboard_log=root_path+"/logs_tb/"+env_name +
+    #    "/trl_frob"+(['', '_sde'][use_sde])+"/",
+    #    learning_rate=3e-4,
+    #    gamma=0.99,
+    #    gae_lambda=0.95,
+    #    normalize_advantage=True,
+    #    ent_coef=0.03,  # 0.1
+    #    vf_coef=0.5,
+    #    use_sde=use_sde,
+    #    clip_range=2,  # 0.2
+    # )
 
     print('PPO:')
     testModel(ppo, timesteps, showRes,
               saveModel, n_eval_episodes)
-    print('TRL_frob:')
-    testModel(trl_frob, timesteps, showRes,
-              saveModel, n_eval_episodes)
+    # print('TRL_frob:')
+    # testModel(trl_frob, timesteps, showRes,
+    #          saveModel, n_eval_episodes)
 
 
 def testModel(model, timesteps, showRes=False, saveModel=False, n_eval_episodes=16):
@@ -95,7 +98,7 @@ def testModel(model, timesteps, showRes=False, saveModel=False, n_eval_episodes=
             env.render()
             episode_reward += reward
             if done:
-                #print("Reward:", episode_reward)
+                # print("Reward:", episode_reward)
                 episode_reward = 0.0
                 obs = env.reset()
     env.reset()

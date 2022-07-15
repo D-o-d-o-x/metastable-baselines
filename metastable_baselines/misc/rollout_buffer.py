@@ -1,4 +1,5 @@
 from typing import Any, Dict, Optional, Type, Union, NamedTuple
+from more_itertools import distribute
 
 import numpy as np
 import torch as th
@@ -10,6 +11,8 @@ from stable_baselines3.common.vec_env import VecEnv
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.utils import obs_as_tensor
 
+from ..misc.distTools import get_mean_and_chol
+from ..distributions.distributions import Strength, UniversalGaussianDistribution
 
 # TRL requires the origina mean and covariance from the policy when the datapoint was created.
 # GaussianRolloutBuffer extends the RolloutBuffer by these two fields
@@ -120,6 +123,12 @@ class GaussianRolloutCollectorAuxclass():
     def _setup_model(self) -> None:
         super()._setup_model()
 
+        cov_shape = self.action_space.shape
+
+        if isinstance(self.policy.action_dist, UniversalGaussianDistribution):
+            if self.policy.action_dist.cov_strength == Strength.FULL:
+                cov_shape = cov_shape + cov_shape
+
         self.rollout_buffer = GaussianRolloutBuffer(
             self.n_steps,
             self.observation_space,
@@ -128,6 +137,7 @@ class GaussianRolloutCollectorAuxclass():
             gamma=self.gamma,
             gae_lambda=self.gae_lambda,
             n_envs=self.n_envs,
+            cov_shape=cov_shape,
         )
 
     def collect_rollouts(

@@ -4,7 +4,7 @@ from enum import Enum
 import gym
 import torch as th
 from torch import nn
-from torch.distributions import Normal, MultivariateNormal
+from torch.distributions import Normal, Independent, MultivariateNormal
 from math import pi
 
 from stable_baselines3.common.preprocessing import get_action_dim
@@ -37,6 +37,7 @@ class Strength(Enum):
 
 
 class ParametrizationType(Enum):
+    NONE = 0
     CHOL = 1
     SPHERICAL_CHOL = 2
     # Not (yet?) implemented:
@@ -46,6 +47,7 @@ class ParametrizationType(Enum):
 
 class EnforcePositiveType(Enum):
     # TODO: Allow custom params for softplus?
+    NONE = (0, nn.Identity())
     SOFTPLUS = (1, nn.Softplus(beta=1, threshold=20))
     ABS = (2, th.abs)
     RELU = (3, nn.ReLU(inplace=False))
@@ -89,14 +91,14 @@ def get_legal_setups(allowedEPTs=None, allowedParStrength=None, allowedCovStreng
                 # TODO: Implement
                 continue
             if ps == Strength.NONE:
-                yield (ps, cs, None, None)
+                yield (ps, cs, EnforcePositiveType.NONE, ProbSquashingType.NONE)
             else:
                 for ept in allowedEPTs:
                     if cs == Strength.FULL:
                         for pt in allowedPTs:
                             yield (ps, cs, ept, pt)
                     else:
-                        yield (ps, cs, ept, None)
+                        yield (ps, cs, ept, ProbSquashingType.NONE)
 
 
 def make_proba_distribution(
@@ -138,7 +140,7 @@ class UniversalGaussianDistribution(SB3_Distribution):
     :param action_dim:  Dimension of the action space.
     """
 
-    def __init__(self, action_dim: int, use_sde: bool = False, neural_strength: Strength = Strength.DIAG, cov_strength: Strength = Strength.DIAG, parameterization_type: ParametrizationType = ParametrizationType.CHOL, enforce_positive_type: EnforcePositiveType = EnforcePositiveType.ABS, prob_squashing_type: ProbSquashingType = ProbSquashingType.NONE):
+    def __init__(self, action_dim: int, use_sde: bool = False, neural_strength: Strength = Strength.DIAG, cov_strength: Strength = Strength.DIAG, parameterization_type: ParametrizationType = ParametrizationType.NONE, enforce_positive_type: EnforcePositiveType = EnforcePositiveType.ABS, prob_squashing_type: ProbSquashingType = ProbSquashingType.NONE):
         super(UniversalGaussianDistribution, self).__init__()
         self.action_dim = action_dim
         self.par_strength = neural_strength
@@ -155,16 +157,19 @@ class UniversalGaussianDistribution(SB3_Distribution):
         if use_sde:
             raise Exception('SDE is not yet implemented')
 
+        assert (parameterization_type != ParametrizationType.NONE) == (
+            cov_strength == Strength.FULL), 'You should set an ParameterizationType iff the cov-strength is full'
+
     def new_dist_like_me(self, mean: th.Tensor, chol: th.Tensor):
         p = self.distribution
-        if isinstance(p, th.distributions.Normal):
+        if isinstance(p, Independent):
             if p.stddev.shape != chol.shape:
                 chol = th.diagonal(chol, dim1=1, dim2=2)
-            np = th.distributions.Normal(mean, chol)
-        elif isinstance(p, th.distributions.MultivariateNormal):
-            np = th.distributions.MultivariateNormal(mean, scale_tril=chol)
+            np = Independent(Normal(mean, chol), 1)
+        elif isinstance(p, MultivariateNormal):
+            np = MultivariateNormal(mean, scale_tril=chol)
         new = UniversalGaussianDistribution(self.action_dim, neural_strength=self.par_strength, cov_strength=self.cov_strength,
-                                            parameterization_type=self.par_strength, enforce_positive_type=self.enforce_positive_type, prob_squashing_type=self.prob_squashing_type)
+                                            parameterization_type=self.par_type, enforce_positive_type=self.enforce_positive_type, prob_squashing_type=self.prob_squashing_type)
         new.distribution = np
 
         return new
@@ -202,9 +207,10 @@ class UniversalGaussianDistribution(SB3_Distribution):
         # TODO: latent_pi is for SDE, implement.
 
         if self.cov_strength in [Strength.NONE, Strength.SCALAR, Strength.DIAG]:
-            self.distribution = Normal(mean_actions, chol)
+            self.distribution = Independent(Normal(mean_actions, chol), 1)
         elif self.cov_strength in [Strength.FULL]:
-            self.distribution = MultivariateNormal(mean_actions, cholesky=chol)
+            self.distribution = MultivariateNormal(
+                mean_actions, scale_tril=chol)
         if self.distribution == None:
             raise Exception('Unable to create torch distribution')
         return self
@@ -218,10 +224,10 @@ class UniversalGaussianDistribution(SB3_Distribution):
         :return:
         """
         log_prob = self.distribution.log_prob(actions)
-        return sum_independent_dims(log_prob)
+        return log_prob
 
     def entropy(self) -> th.Tensor:
-        return sum_independent_dims(self.distribution.entropy())
+        return self.distribution.entropy()
 
     def sample(self) -> th.Tensor:
         # Reparametrization trick to pass gradients

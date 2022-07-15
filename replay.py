@@ -6,11 +6,10 @@ import os
 import time
 import datetime
 
-from stable_baselines3 import SAC, PPO, A2C
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.policies import ActorCriticCnnPolicy, ActorCriticPolicy, MultiInputActorCriticPolicy
 
-from metastable_baselines.trl_pg import TRL_PG
+from metastable_baselines.ppo import PPO
 import columbus
 
 
@@ -26,14 +25,8 @@ def main(load_path, n_eval_episodes=0):
     use_sde = file_name.find('sde') != -1
     print(env_name, alg_name, alg_deriv, use_sde)
     env = gym.make(env_name)
-    if alg_name == 'ppo':
-        Model = PPO
-    elif alg_name == 'trl' and alg_deriv == 'pg':
-        Model = TRL_PG
-    else:
-        raise Exception('Algorithm not implemented for replay')
 
-    model = Model.load(load_path, env=env)
+    model = PPO.load(load_path, env=env)
 
     if n_eval_episodes:
         mean_reward, std_reward = evaluate_policy(

@@ -6,7 +6,7 @@ from ..distributions import UniversalGaussianDistribution, AnyDistribution
 
 
 def get_mean_and_chol(p: AnyDistribution, expand=False):
-    if isinstance(p, th.distributions.Normal):
+    if isinstance(p, th.distributions.Normal) or isinstance(p, th.distributions.Independent):
         if expand:
             return p.mean, th.diag_embed(p.stddev)
         else:
@@ -32,7 +32,7 @@ def get_mean_and_sqrt(p: UniversalGaussianDistribution):
 
 
 def get_cov(p: AnyDistribution):
-    if isinstance(p, th.distributions.Normal):
+    if isinstance(p, th.distributions.Normal) or isinstance(p, th.distributions.Independent):
         return th.diag_embed(p.variance)
     elif isinstance(p, th.distributions.MultivariateNormal):
         return p.covariance_matrix
@@ -45,7 +45,7 @@ def get_cov(p: AnyDistribution):
 def has_diag_cov(p: AnyDistribution, numerical_check=True):
     if isinstance(p, SB3_Distribution):
         return has_diag_cov(p.distribution, numerical_check=numerical_check)
-    if isinstance(p, th.distributions.Normal):
+    if isinstance(p, th.distributions.Normal) or isinstance(p, th.distributions.Independent):
         return True
     if not numerical_check:
         return False
@@ -67,11 +67,15 @@ def get_diag_cov_vec(p: AnyDistribution, check_diag=True, numerical_check=True):
 
 def new_dist_like(orig_p: AnyDistribution, mean: th.Tensor, chol: th.Tensor):
     if isinstance(orig_p, UniversalGaussianDistribution):
-        return orig_p.new_list_like_me(mean, chol)
+        return orig_p.new_dist_like_me(mean, chol)
     elif isinstance(orig_p, th.distributions.Normal):
         if orig_p.stddev.shape != chol.shape:
             chol = th.diagonal(chol, dim1=1, dim2=2)
         return th.distributions.Normal(mean, chol)
+    elif isinstance(orig_p, th.distributions.Independent):
+        if orig_p.stddev.shape != chol.shape:
+            chol = th.diagonal(chol, dim1=1, dim2=2)
+        return th.distributions.Independent(th.distributions.Normal(mean, chol), 1)
     elif isinstance(orig_p, th.distributions.MultivariateNormal):
         return th.distributions.MultivariateNormal(mean, scale_tril=chol)
     elif isinstance(orig_p, SB3_Distribution):
@@ -79,6 +83,10 @@ def new_dist_like(orig_p: AnyDistribution, mean: th.Tensor, chol: th.Tensor):
         if isinstance(p, th.distributions.Normal):
             p_out = orig_p.__class__(orig_p.action_dim)
             p_out.distribution = th.distributions.Normal(mean, chol)
+        elif isinstance(p, th.distributions.Independent):
+            p_out = orig_p.__class__(orig_p.action_dim)
+            p_out.distribution = th.distributions.Independent(
+                th.distributions.Normal(mean, chol), 1)
         elif isinstance(p, th.distributions.MultivariateNormal):
             p_out = orig_p.__class__(orig_p.action_dim)
             p_out.distribution = th.distributions.MultivariateNormal(
