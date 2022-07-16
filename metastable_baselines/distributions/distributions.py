@@ -79,9 +79,6 @@ def get_legal_setups(allowedEPTs=None, allowedParStrength=None, allowedCovStreng
         for cs in allowedCovStrength:
             if ps.value > cs.value:
                 continue
-            if ps == Strength.DIAG and cs == Strength.FULL:
-                # TODO: Implement
-                continue
             for ept in allowedEPTs:
                 if cs == Strength.FULL:
                     for pt in allowedPTs:
