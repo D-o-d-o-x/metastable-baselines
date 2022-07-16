@@ -361,17 +361,16 @@ class PPO(GaussianRolloutCollectorAuxclass, OnPolicyAlgorithm):
             self.logger.record(
                 "train/std", th.exp(self.policy.log_std).mean().item())
         elif hasattr(self.policy, "chol"):
-            if len(self.policy.chol.shape) == 1:
+            chol = self.policy.chol
+            if len(chol.shape) == 1:
                 self.logger.record(
-                    "train/std", th.mean(self.policy.chol).mean().item())
-            else:
-                if len(self.policy.chol.shape) == 2:
-                    chol = self.policy.chol
-                else:
-                    # TODO: Maybe use a broader sample?
-                    chol = self.policy.chol[0]
+                    "train/std", th.mean(chol).mean().item())
+            elif len(chol.shape) == 2:
                 self.logger.record(
                     "train/std", th.mean(th.sqrt(th.diagonal(chol.T @ chol, dim1=-2, dim2=-1))).mean().item())
+            else:
+                self.logger.record(
+                    "train/std", th.mean(th.sqrt(th.diagonal(chol.mT @ chol, dim1=-2, dim2=-1))).mean().item())
 
         self.logger.record("train/n_updates",
                            self._n_updates, exclude="tensorboard")
