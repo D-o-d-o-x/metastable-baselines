@@ -346,11 +346,7 @@ class CholNet(nn.Module):
                     pearson_cor = pearson_cor.expand(
                         (stds.shape[0],)+pearson_cor.shape)
                     stds = stds.unsqueeze(2)
-                try:
-                    cov = stds.mT * pearson_cor * stds
-                except:
-                    import pdb
-                    pdb.set_trace()
+                cov = stds.mT * pearson_cor * stds
                 chol = th.linalg.cholesky(cov)
                 return chol
             elif self.par_strength == Strength.SCALAR and self.cov_strength == Strength.FULL:
