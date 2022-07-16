@@ -338,11 +338,7 @@ class CholNet(nn.Module):
                 stds = self._ensure_positive_func(self.stds(x))
                 smol = self._parameterize_full(self.params)
                 big = self.padder(smol)
-                try:
-                    pearson_cor_chol = big + th.eye(stds.shape[-1])
-                except:
-                    import pdb
-                    pdb.set_trace()
+                pearson_cor_chol = big + th.eye(stds.shape[-1])
                 pearson_cor = pearson_cor_chol.T @ pearson_cor_chol
                 cov = stds.T * pearson_cor * stds
                 chol = th.linalg.cholesky(cov)
