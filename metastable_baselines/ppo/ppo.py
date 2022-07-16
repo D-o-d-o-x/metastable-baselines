@@ -366,7 +366,7 @@ class PPO(GaussianRolloutCollectorAuxclass, OnPolicyAlgorithm):
                     "train/std", th.mean(self.policy.chol).mean().item())
             else:
                 self.logger.record(
-                    "train/std", th.mean(th.diagonal(self.policy.chol, dim1=-2, dim2=-1)).mean().item())
+                    "train/std", th.mean(th.sqrt(th.diagonal(self.policy.chol.T @ self.policy.chol, dim1=-2, dim2=-1))).mean().item())
 
         self.logger.record("train/n_updates",
                            self._n_updates, exclude="tensorboard")
