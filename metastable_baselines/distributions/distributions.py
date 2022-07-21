@@ -148,9 +148,6 @@ class UniversalGaussianDistribution(SB3_Distribution):
         self.distribution = None
         self.gaussian_actions = None
 
-        if self.prob_squashing_type != ProbSquashingType.NONE:
-            raise Exception('ProbSquasing is not yet implmenented!')
-
         if use_sde:
             raise Exception('SDE is not yet implemented')
 
