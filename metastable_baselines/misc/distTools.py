@@ -1,4 +1,3 @@
-from sympy import numer
 import torch as th
 
 from stable_baselines3.common.distributions import Distribution as SB3_Distribution
