@@ -184,6 +184,16 @@ class UniversalGaussianDistribution(SB3_Distribution):
 
         return new
 
+    def new_dist_like_me_from_sqrt(self, mean: th.Tensor, cov_sqrt: th.Tensor):
+        chol = self._sqrt_to_chol(cov_sqrt)
+
+        new = self.new_dist_like_me(mean, chol)
+
+        new.cov_sqrt = cov_sqrt
+        new.distribution.cov_sqrt = cov_sqrt
+
+        return new
+
     def proba_distribution_net(self, latent_dim: int, latent_sde_dim: int, std_init: float = 0.0) -> Tuple[nn.Module, nn.Module]:
         """
         Create the layers and parameter that represent the distribution:
@@ -206,6 +216,22 @@ class UniversalGaussianDistribution(SB3_Distribution):
 
         return mean_actions, chol
 
+    def _sqrt_to_chol(self, cov_sqrt):
+        vec = False
+        if len(cov_sqrt.shape) == 2:
+            vec = True
+
+        if vec:
+            cov_sqrt = th.diag_embed(cov_sqrt)
+
+        cov = th.bmm(cov_sqrt.mT, cov_sqrt)
+        chol = th.linalg.cholesky(cov)
+
+        if vec:
+            chol = th.diagonal(chol, dim1=-2, dim2=-1)
+
+        return chol
+
     def proba_distribution_from_sqrt(self, mean_actions: th.Tensor, cov_sqrt: th.Tensor, latent_pi: nn.Module) -> "UniversalGaussianDistribution":
         """
         Create the distribution given its parameters (mean, cov_sqrt)
@@ -214,12 +240,11 @@ class UniversalGaussianDistribution(SB3_Distribution):
         :param cov_sqrt:
         :return:
         """
-        cov = cov_sqrt.T @ cov_sqrt
-        chol = th.linalg.cholesky(cov)
-
         self.cov_sqrt = cov_sqrt
-
-        return self.proba_distribution(mean_actions, chol, latent_pi)
+        chol = self._sqrt_to_chol(cov_sqrt)
+        self.proba_distribution(mean_actions, chol, latent_pi)
+        self.distribution.cov_sqrt = cov_sqrt
+        return self
 
     def proba_distribution(self, mean_actions: th.Tensor, chol: th.Tensor, latent_pi: nn.Module) -> "UniversalGaussianDistribution":
         """

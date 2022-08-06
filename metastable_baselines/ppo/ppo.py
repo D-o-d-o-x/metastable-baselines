@@ -16,7 +16,7 @@ from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.utils import obs_as_tensor
 from stable_baselines3.common.vec_env import VecNormalize
 
-from ..misc.distTools import new_dist_like
+from ..misc.distTools import new_dist_like, new_dist_like_from_sqrt
 
 from ..projections.base_projection_layer import BaseProjectionLayer
 from ..projections.frob_projection_layer import FrobeniusProjectionLayer
@@ -133,7 +133,9 @@ class PPO(GaussianRolloutCollectorAuxclass, OnPolicyAlgorithm):
             use_sde=use_sde,
             sde_sample_freq=sde_sample_freq,
             tensorboard_log=tensorboard_log,
-            policy_kwargs=policy_kwargs,
+            policy_kwargs=policy_kwargs |
+            {'sqrt_induced_gaussian': isinstance(
+                projection, WassersteinProjectionLayer)},
             verbose=verbose,
             device=device,
             create_eval_env=create_eval_env,
@@ -245,8 +247,12 @@ class PPO(GaussianRolloutCollectorAuxclass, OnPolicyAlgorithm):
                 latent_pi, latent_vf = pol.mlp_extractor(features)
                 p = pol._get_action_dist_from_latent(latent_pi)
                 p_dist = p.distribution
-                q_dist = new_dist_like(
-                    p_dist, rollout_data.means, rollout_data.chols)
+                if isinstance(self.projection, WassersteinProjectionLayer):
+                    q_dist = new_dist_like_from_sqrt(
+                        p_dist, rollout_data.means, rollout_data.chols)
+                else:
+                    q_dist = new_dist_like(
+                        p_dist, rollout_data.means, rollout_data.chols)
                 proj_p = self.projection(p_dist, q_dist, self._global_steps)
                 if isinstance(p_dist, th.distributions.Normal):
                     # Normal uses a weird mapping from dimensions into batch_shape

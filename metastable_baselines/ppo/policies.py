@@ -99,6 +99,7 @@ class ActorCriticPolicy(BasePolicy):
         optimizer_class: Type[th.optim.Optimizer] = th.optim.Adam,
         optimizer_kwargs: Optional[Dict[str, Any]] = None,
         dist_kwargs: Optional[Dict[str, Any]] = None,
+        sqrt_induced_gaussian=False,
     ):
 
         if optimizer_kwargs is None:
@@ -151,6 +152,8 @@ class ActorCriticPolicy(BasePolicy):
 
         self.use_sde = use_sde
         self.dist_kwargs = dist_kwargs
+
+        self.sqrt_induced_gaussian = sqrt_induced_gaussian
 
         # Action distribution
         self.action_dist = make_proba_distribution(
@@ -289,18 +292,6 @@ class ActorCriticPolicy(BasePolicy):
         """
         mean_actions = self.action_net(latent_pi)
 
-        if isinstance(self.projection, WassersteinProjectionLayer):
-            if isinstance(self.action_dist, UniversalGaussianDistribution):
-                cov_sqrt = self.chol_net(latent_pi)
-                dist = self.action_dist.proba_distribution_from_sqrt(
-                    mean_actions, cov_sqrt, latent_pi)
-                mean, chol = get_mean_and_chol(dist, expand=False)
-                self.chol = chol
-                return dist
-            else:
-                raise Exception(
-                    'Need to use UniversalGaussianDistribution to use WassersteinProjection (uses sqrt-induced-cov)')
-
         if isinstance(self.action_dist, DiagGaussianDistribution):
             return self.action_dist.proba_distribution(mean_actions, self.log_std)
         elif isinstance(self.action_dist, CategoricalDistribution):
@@ -315,9 +306,17 @@ class ActorCriticPolicy(BasePolicy):
         elif isinstance(self.action_dist, StateDependentNoiseDistribution):
             return self.action_dist.proba_distribution(mean_actions, self.log_std, latent_pi)
         elif isinstance(self.action_dist, UniversalGaussianDistribution):
-            chol = self.chol_net(latent_pi)
-            self.chol = chol
-            return self.action_dist.proba_distribution(mean_actions, chol, latent_pi)
+            if self.sqrt_induced_gaussian:
+                cov_sqrt = self.chol_net(latent_pi)
+                dist = self.action_dist.proba_distribution_from_sqrt(
+                    mean_actions, cov_sqrt, latent_pi)
+                mean, chol = get_mean_and_chol(dist, expand=False)
+                self.chol = chol
+                return dist
+            else:
+                chol = self.chol_net(latent_pi)
+                self.chol = chol
+                return self.action_dist.proba_distribution(mean_actions, chol, latent_pi)
         else:
             raise ValueError("Invalid action distribution")
 

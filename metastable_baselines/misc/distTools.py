@@ -19,17 +19,16 @@ def get_mean_and_chol(p: AnyDistribution, expand=False):
         raise Exception('Dist-Type not implemented')
 
 
-def get_mean_and_sqrt(p: UniversalGaussianDistribution):
-    if isinstance(p, UniversalGaussianDistribution):
-        if not hasattr(p, 'cov_sqrt'):
-            raise Exception(
-                'Distribution was not induced from sqrt. On-demand calculation is not supported.')
-        else:
-            mean, chol = get_mean_and_chol(p)
-            sqrt_cov = p.cov_sqrt
-            return mean, sqrt_cov
+def get_mean_and_sqrt(p: UniversalGaussianDistribution, expand=False):
+    if not hasattr(p, 'cov_sqrt'):
+        raise Exception(
+            'Distribution was not induced from sqrt. On-demand calculation is not supported.')
     else:
-        raise Exception('Dist-Type not implemented')
+        mean, chol = get_mean_and_chol(p, expand=False)
+        sqrt_cov = p.cov_sqrt
+        if expand and len(sqrt_cov.shape) == 2:
+            sqrt_cov = th.diag_embed(sqrt_cov)
+        return mean, sqrt_cov
 
 
 def get_cov(p: AnyDistribution):
@@ -97,3 +96,32 @@ def new_dist_like(orig_p: AnyDistribution, mean: th.Tensor, chol: th.Tensor):
         return p_out
     else:
         raise Exception('Dist-Type not implemented')
+
+
+def new_dist_like_from_sqrt(orig_p: AnyDistribution, mean: th.Tensor, cov_sqrt: th.Tensor):
+    chol = _sqrt_to_chol(cov_sqrt)
+
+    new = new_dist_like(orig_p, mean, chol)
+
+    new.cov_sqrt = cov_sqrt
+    if hasattr(new, 'distribution'):
+        new.distribution.cov_sqrt = cov_sqrt
+
+    return new
+
+
+def _sqrt_to_chol(cov_sqrt):
+    vec = False
+    if len(cov_sqrt.shape) == 2:
+        vec = True
+
+    if vec:
+        cov_sqrt = th.diag_embed(cov_sqrt)
+
+    cov = th.bmm(cov_sqrt.mT, cov_sqrt)
+    chol = th.linalg.cholesky(cov)
+
+    if vec:
+        chol = th.diagonal(chol, dim1=-2, dim2=-1)
+
+    return chol
