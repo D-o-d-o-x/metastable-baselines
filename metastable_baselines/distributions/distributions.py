@@ -206,6 +206,21 @@ class UniversalGaussianDistribution(SB3_Distribution):
 
         return mean_actions, chol
 
+    def proba_distribution_from_sqrt(self, mean_actions: th.Tensor, cov_sqrt: th.Tensor, latent_pi: nn.Module) -> "UniversalGaussianDistribution":
+        """
+        Create the distribution given its parameters (mean, cov_sqrt)
+
+        :param mean_actions:
+        :param cov_sqrt:
+        :return:
+        """
+        cov = cov_sqrt.T @ cov_sqrt
+        chol = th.linalg.cholesky(cov)
+
+        self.cov_sqrt = cov_sqrt
+
+        return self.proba_distribution(mean_actions, chol, latent_pi)
+
     def proba_distribution(self, mean_actions: th.Tensor, chol: th.Tensor, latent_pi: nn.Module) -> "UniversalGaussianDistribution":
         """
         Create the distribution given its parameters (mean, chol)

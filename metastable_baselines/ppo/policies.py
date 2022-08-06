@@ -35,6 +35,8 @@ from stable_baselines3.common.torch_layers import (
     NatureCNN,
 )
 
+from metastable_baselines.projections.w2_projection_layer import WassersteinProjectionLayer
+
 from ..distributions import UniversalGaussianDistribution, make_proba_distribution
 
 
@@ -285,6 +287,17 @@ class ActorCriticPolicy(BasePolicy):
         :return: Action distribution
         """
         mean_actions = self.action_net(latent_pi)
+
+        if isinstance(self.projection, WassersteinProjectionLayer):
+            if isinstance(self.action_dist, UniversalGaussianDistribution):
+                cov_sqrt = self.chol_net(latent_pi)
+                dist = self.action_dist.proba_distribution_from_sqrt(
+                    mean_actions, cov_sqrt, latent_pi)
+                self.chol = dist.chol
+                return dist
+            else:
+                raise Exception(
+                    'Need to use UniversalGaussianDistribution to use WassersteinProjection (uses sqrt-induced-cov)')
 
         if isinstance(self.action_dist, DiagGaussianDistribution):
             return self.action_dist.proba_distribution(mean_actions, self.log_std)
