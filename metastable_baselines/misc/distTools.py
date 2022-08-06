@@ -20,13 +20,14 @@ def get_mean_and_chol(p: AnyDistribution, expand=False):
 
 
 def get_mean_and_sqrt(p: UniversalGaussianDistribution):
-    raise Exception('Not yet implemented...')
-    if isinstance(p, th.distributions.Normal):
-        return p.mean, p.stddev
-    elif isinstance(p, th.distributions.MultivariateNormal):
-        return p.mean, p.scale_tril
-    elif isinstance(p, SB3_Distribution):
-        return get_mean_and_chol(p.distribution)
+    if isinstance(p, UniversalGaussianDistribution):
+        if not hasattr(p, 'cov_sqrt'):
+            raise Exception(
+                'Distribution was not induced from sqrt. On-demand calculation is not supported.')
+        else:
+            mean, chol = get_mean_and_chol(p)
+            sqrt_cov = p.cov_sqrt
+            return mean, sqrt_cov
     else:
         raise Exception('Dist-Type not implemented')
 

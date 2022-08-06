@@ -38,6 +38,7 @@ from stable_baselines3.common.torch_layers import (
 from metastable_baselines.projections.w2_projection_layer import WassersteinProjectionLayer
 
 from ..distributions import UniversalGaussianDistribution, make_proba_distribution
+from ..misc.distTools import get_mean_and_chol
 
 
 class ActorCriticPolicy(BasePolicy):
@@ -293,7 +294,8 @@ class ActorCriticPolicy(BasePolicy):
                 cov_sqrt = self.chol_net(latent_pi)
                 dist = self.action_dist.proba_distribution_from_sqrt(
                     mean_actions, cov_sqrt, latent_pi)
-                self.chol = dist.chol
+                mean, chol = get_mean_and_chol(dist, expand=False)
+                self.chol = chol
                 return dist
             else:
                 raise Exception(
