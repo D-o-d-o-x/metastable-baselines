@@ -35,6 +35,8 @@ from stable_baselines3.common.torch_layers import (
     NatureCNN,
 )
 
+from stable_baselines3.common.preprocessing import get_action_dim
+
 from metastable_baselines.projections.w2_projection_layer import WassersteinProjectionLayer
 
 from ..distributions import UniversalGaussianDistribution, make_proba_distribution
@@ -196,7 +198,14 @@ class ActorCriticPolicy(BasePolicy):
         assert isinstance(
             self.action_dist, StateDependentNoiseDistribution) or isinstance(
             self.action_dist, UniversalGaussianDistribution), "reset_noise() is only available when using gSDE"
-        self.action_dist.sample_weights(self.log_std, batch_size=n_envs)
+        if isinstance(
+                self.action_dist, StateDependentNoiseDistribution):
+            self.action_dist.sample_weights(self.log_std, batch_size=n_envs)
+
+        if isinstance(
+                self.action_dist, UniversalGaussianDistribution):
+            self.action_dist.sample_weights(
+                get_action_dim(self.action_space), batch_size=n_envs)
 
     def _build_mlp_extractor(self) -> None:
         """

@@ -160,8 +160,7 @@ class UniversalGaussianDistribution(SB3_Distribution):
         self.distribution = None
         self.gaussian_actions = None
 
-        if use_sde:
-            raise Exception('SDE is not yet implemented')
+        self.use_sde = use_sde
 
         assert (self.par_type != ParametrizationType.NONE) == (
             self.cov_strength == Strength.FULL), 'You should set an ParameterizationType iff the cov-strength is full'
@@ -214,6 +213,9 @@ class UniversalGaussianDistribution(SB3_Distribution):
         chol = CholNet(latent_dim, self.action_dim, std_init, self.par_strength,
                        self.cov_strength, self.par_type, self.enforce_positive_type, self.prob_squashing_type)
 
+        if self.use_sde:
+            self.sample_weights(self.action_dim)
+
         return mean_actions, chol
 
     def _sqrt_to_chol(self, cov_sqrt):
@@ -246,7 +248,7 @@ class UniversalGaussianDistribution(SB3_Distribution):
         self.distribution.cov_sqrt = cov_sqrt
         return self
 
-    def proba_distribution(self, mean_actions: th.Tensor, chol: th.Tensor, latent_pi: nn.Module) -> "UniversalGaussianDistribution":
+    def proba_distribution(self, mean_actions: th.Tensor, chol: th.Tensor, latent_sde: nn.Module) -> "UniversalGaussianDistribution":
         """
         Create the distribution given its parameters (mean, chol)
 
@@ -254,7 +256,9 @@ class UniversalGaussianDistribution(SB3_Distribution):
         :param chol:
         :return:
         """
-        # TODO: latent_pi is for SDE, implement.
+        if self.use_sde:
+            self._latent_sde = latent_sde if self.learn_features else latent_sde.detach()
+            # TODO: Change variance of dist to include sde-spread
 
         if self.cov_strength in [Strength.NONE, Strength.SCALAR, Strength.DIAG]:
             self.distribution = Independent(Normal(mean_actions, chol), 1)
@@ -300,6 +304,12 @@ class UniversalGaussianDistribution(SB3_Distribution):
         self.gaussian_actions = sample
         return self.prob_squashing_type.apply(sample)
 
+    def sample_sde(self) -> th.Tensor:
+        noise = self.get_noise(self._latent_sde)
+        actions = self.distribution.mean + noise
+        self.gaussian_actions = actions
+        return self.prob_squashing_type.apply(actions)
+
     def mode(self) -> th.Tensor:
         mode = self.distribution.mean
         self.gaussian_actions = mode
@@ -322,6 +332,28 @@ class UniversalGaussianDistribution(SB3_Distribution):
         actions = self.actions_from_params(mean_actions, log_std)
         log_prob = self.log_prob(actions, self.gaussian_actions)
         return actions, log_prob
+
+    def sample_weights(self, num_dims, batch_size=1):
+        self.weights_dist = Normal(th.zeros(num_dims), th.ones(num_dims))
+        # Reparametrization trick to pass gradients
+        self.exploration_mat = self.weights_dist.rsample()
+        # Pre-compute matrices in case of parallel exploration
+        self.exploration_matrices = self.weights_dist.rsample((batch_size,))
+
+    def get_noise(self, latent_sde: th.Tensor) -> th.Tensor:
+        latent_sde = latent_sde if self.learn_features else latent_sde.detach()
+        # # TODO: Good idea?
+        latent_sde = th.nn.functional.normalize(latent_sde, dim=-1)
+        chol = self.distribution.scale_tril
+        # Default case: only one exploration matrix
+        if len(latent_sde) == 1 or len(latent_sde) != len(self.exploration_matrices):
+            return th.mm(chol, th.mm(latent_sde, self.exploration_mat))
+        # Use batch matrix multiplication for efficient computation
+        # (batch_size, n_features) -> (batch_size, 1, n_features)
+        latent_sde = latent_sde.unsqueeze(dim=1)
+        # (batch_size, 1, n_actions)
+        noise = th.bmm(chol, th.bmm(latent_sde, self.exploration_matrices))
+        return noise.squeeze(dim=1)
 
 
 class CholNet(nn.Module):

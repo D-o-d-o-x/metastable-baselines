@@ -157,16 +157,23 @@ class Actor(BasePolicy):
                           StateDependentNoiseDistribution), msg
         return self.chol
 
-    def reset_noise(self, batch_size: int = 1) -> None:
+    def reset_noise(self, n_envs: int = 1) -> None:
         """
-        Sample new weights for the exploration matrix, when using gSDE.
+        Sample new weights for the exploration matrix.
 
-        :param batch_size:
+        :param n_envs:
         """
-        msg = "reset_noise() is only available when using gSDE"
-        assert isinstance(self.action_dist,
-                          StateDependentNoiseDistribution), msg
-        self.action_dist.sample_weights(self.chol, batch_size=batch_size)
+        assert isinstance(
+            self.action_dist, StateDependentNoiseDistribution) or isinstance(
+            self.action_dist, UniversalGaussianDistribution), "reset_noise() is only available when using gSDE"
+        if isinstance(
+                self.action_dist, StateDependentNoiseDistribution):
+            self.action_dist.sample_weights(self.chol, batch_size=n_envs)
+
+        if isinstance(
+                self.action_dist, UniversalGaussianDistribution):
+            self.action_dist.sample_weights(
+                get_action_dim(self.action_space), batch_size=n_envs)
 
     def get_action_dist_params(self, obs: th.Tensor) -> Tuple[th.Tensor, th.Tensor, Dict[str, th.Tensor]]:
         """

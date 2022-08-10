@@ -105,7 +105,7 @@ class PPO(GaussianRolloutCollectorAuxclass, OnPolicyAlgorithm):
         target_kl: Optional[float] = None,
         tensorboard_log: Optional[str] = None,
         create_eval_env: bool = False,
-        policy_kwargs: Optional[Dict[str, Any]] = None,
+        policy_kwargs: Optional[Dict[str, Any]] = {},
         verbose: int = 0,
         seed: Optional[int] = None,
         device: Union[th.device, str] = "auto",
