@@ -514,10 +514,12 @@ class CholNet(nn.Module):
         n = sphe_chol.shape[-1]
         L = th.zeros_like(sphe_chol)
         for i in range(n):
-            t = 1
+            #t = 1
+            t = th.Tensor([1])[0]
             #s = ''
             for j in range(i+1):
-                maybe_cos = 1
+                #maybe_cos = 1
+                maybe_cos = th.Tensor([1])[0]
                 #s_maybe_cos = ''
                 if i != j and j < n-1 and i < n:
                     if batch:
