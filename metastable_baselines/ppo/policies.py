@@ -203,8 +203,7 @@ class ActorCriticPolicy(BasePolicy):
 
         if isinstance(
                 self.action_dist, UniversalGaussianDistribution):
-            self.action_dist.sample_weights(
-                get_action_dim(self.action_space), batch_size=n_envs)
+            self.action_dist.sample_weights(batch_size=n_envs)
 
     def _build_mlp_extractor(self) -> None:
         """

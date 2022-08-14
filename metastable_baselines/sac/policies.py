@@ -185,8 +185,7 @@ class Actor(BasePolicy):
 
         if isinstance(
                 self.action_dist, UniversalGaussianDistribution):
-            self.action_dist.sample_weights(
-                get_action_dim(self.action_space), batch_size=n_envs)
+            self.action_dist.sample_weights(batch_size=n_envs)
 
     def get_action_dist_params(self, obs: th.Tensor) -> Tuple[th.Tensor, th.Tensor, Dict[str, th.Tensor]]:
         """
