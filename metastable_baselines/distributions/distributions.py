@@ -163,8 +163,6 @@ class UniversalGaussianDistribution(SB3_Distribution):
         self.use_sde = use_sde
         self.learn_features = sde_learn_features
 
-        print('sde', self.use_sde)
-
         assert (self.par_type != ParametrizationType.NONE) == (
             self.cov_strength == Strength.FULL), 'You should set an ParameterizationType iff the cov-strength is full'
 
