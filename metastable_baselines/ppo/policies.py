@@ -140,10 +140,9 @@ class ActorCriticPolicy(BasePolicy):
         # Keyword arguments for gSDE distribution
         if use_sde:
             add_dist_kwargs = {
-                "full_std": full_std,
-                "squash_output": squash_output,
-                "use_expln": use_expln,
-                "learn_features": False,
+                'use_sde': True,
+                # "use_expln": use_expln,
+                # "learn_features": False,
             }
             for k in add_dist_kwargs:
                 dist_kwargs[k] = add_dist_kwargs[k]

@@ -100,18 +100,31 @@ class Actor(BasePolicy):
         last_layer_dim = net_arch[-1] if len(net_arch) > 0 else features_dim
 
         if self.use_sde:
-            # TODO: Port to UGD
-            self.action_dist = StateDependentNoiseDistribution(
-                action_dim, full_std=full_std, use_expln=use_expln, learn_features=True, squash_output=True
-            )
+            add_dist_kwargs = {
+                'use_sde': True,
+                # "use_expln": use_expln,
+                # "learn_features": False,
+            }
+            for k in add_dist_kwargs:
+                dist_kwargs[k] = add_dist_kwargs[k]
+
+            self.action_dist = UniversalGaussianDistribution(
+                action_dim, **dist_kwargs)
             self.mu_net, self.chol_net = self.action_dist.proba_distribution_net(
-                latent_dim=last_layer_dim, latent_sde_dim=last_layer_dim, log_std_init=log_std_init
+                latent_dim=last_layer_dim, latent_sde_dim=last_layer_dim, std_init=math.exp(
+                    self.log_std_init)
             )
+            # self.action_dist = StateDependentNoiseDistribution(
+            #    action_dim, full_std=full_std, use_expln=use_expln, learn_features=True, squash_output=True
+            # )
+            # self.mu_net, self.chol_net = self.action_dist.proba_distribution_net(
+            #    latent_dim=last_layer_dim, latent_sde_dim=last_layer_dim, log_std_init=log_std_init
+            # )
             # Avoid numerical issues by limiting the mean of the Gaussian
             # to be in [-clip_mean, clip_mean]
-            if clip_mean > 0.0:
-                self.mu = nn.Sequential(self.mu, nn.Hardtanh(
-                    min_val=-clip_mean, max_val=clip_mean))
+            # if clip_mean > 0.0:
+            #    self.mu = nn.Sequential(self.mu, nn.Hardtanh(
+            #        min_val=-clip_mean, max_val=clip_mean))
         else:
             self.action_dist = UniversalGaussianDistribution(
                 action_dim, **dist_kwargs)
@@ -120,9 +133,9 @@ class Actor(BasePolicy):
                     self.log_std_init)
             )
 
-            #self.action_dist = SquashedDiagGaussianDistribution(action_dim)
-            #self.mu = nn.Linear(last_layer_dim, action_dim)
-            #self.log_std = nn.Linear(last_layer_dim, action_dim)
+            # self.action_dist = SquashedDiagGaussianDistribution(action_dim)
+            # self.mu = nn.Linear(last_layer_dim, action_dim)
+            # self.log_std = nn.Linear(last_layer_dim, action_dim)
 
     def _get_constructor_parameters(self) -> Dict[str, Any]:
         data = super()._get_constructor_parameters()
