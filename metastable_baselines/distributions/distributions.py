@@ -221,13 +221,19 @@ class UniversalGaussianDistribution(SB3_Distribution):
 
     def _sqrt_to_chol(self, cov_sqrt):
         vec = False
-        if len(cov_sqrt.shape) == 2:
+        nobatch = False
+        if len(cov_sqrt.shape) <= 2:
             vec = True
+        if len(cov_sqrt.shape) == 1:
+            nobatch = True
 
         if vec:
             cov_sqrt = th.diag_embed(cov_sqrt)
 
-        cov = th.bmm(cov_sqrt.mT, cov_sqrt)
+        if nobatch:
+            cov = th.mm(cov_sqrt.mT, cov_sqrt)
+        else:
+            cov = th.bmm(cov_sqrt.mT, cov_sqrt)
         chol = th.linalg.cholesky(cov)
 
         if vec:

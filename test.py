@@ -20,21 +20,21 @@ root_path = '.'
 
 def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=1_000_000, showRes=True, saveModel=True, n_eval_episodes=0):
     env = gym.make(env_name)
-    use_sde = True
+    use_sde = False
     ppo = PPO(
         MlpPolicyPPO,
         env,
-        projection=BaseProjectionLayer(),
-        policy_kwargs={'dist_kwargs': {'neural_strength': Strength.FULL, 'cov_strength': Strength.FULL, 'parameterization_type':
-                       ParametrizationType.CHOL, 'enforce_positive_type': EnforcePositiveType.ABS, 'prob_squashing_type': ProbSquashingType.NONE}},
+        projection=KLProjectionLayer(trust_region_coeff=0.01),
+        policy_kwargs={'dist_kwargs': {'neural_strength': Strength.SCALAR, 'cov_strength': Strength.DIAG, 'parameterization_type':
+                       ParametrizationType.NONE, 'enforce_positive_type': EnforcePositiveType.ABS, 'prob_squashing_type': ProbSquashingType.NONE}},
         verbose=0,
         tensorboard_log=root_path+"/logs_tb/" +
         env_name+"/ppo"+(['', '_sde'][use_sde])+"/",
-        learning_rate=3e-4,
+        learning_rate=3e-4,  # 3e-4,
         gamma=0.99,
         gae_lambda=0.95,
         normalize_advantage=True,
-        ent_coef=0.02,  # 0.1
+        ent_coef=0.1,  # 0.1
         vf_coef=0.5,
         use_sde=use_sde,  # False
         clip_range=1  # 0.2,

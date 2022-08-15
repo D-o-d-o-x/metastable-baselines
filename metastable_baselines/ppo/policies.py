@@ -315,9 +315,19 @@ class ActorCriticPolicy(BasePolicy):
         elif isinstance(self.action_dist, UniversalGaussianDistribution):
             if self.sqrt_induced_gaussian:
                 chol_sqrt_cov = self.chol_net(latent_pi)
-                if len(chol_sqrt_cov.shape) == 2:
+                unembed = False
+                squeeze = False
+                if len(chol_sqrt_cov.shape) <= 2:
+                    unembed = True
                     chol_sqrt_cov = th.diag_embed(chol_sqrt_cov)
+                if len(chol_sqrt_cov.shape) <= 2:
+                    squeeze = True
+                    chol_sqrt_cov = chol_sqrt_cov.unsqueeze(0)
                 cov_sqrt = th.bmm(chol_sqrt_cov.mT, chol_sqrt_cov)
+                if squeeze and False:
+                    cov_sqrt = cov_sqrt.squeeze()
+                if unembed:
+                    cov_sqrt = th.diagonal(cov_sqrt, dim1=-2, dim2=-1)
                 dist = self.action_dist.proba_distribution_from_sqrt(
                     mean_actions, cov_sqrt, latent_pi)
                 mean, chol = get_mean_and_chol(dist, expand=False)

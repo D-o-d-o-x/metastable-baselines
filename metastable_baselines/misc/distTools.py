@@ -26,7 +26,12 @@ def get_mean_and_sqrt(p: UniversalGaussianDistribution, expand=False):
     else:
         mean, chol = get_mean_and_chol(p, expand=False)
         sqrt_cov = p.cov_sqrt
-        if expand and len(sqrt_cov.shape) == 2:
+        if mean.shape[0] != sqrt_cov.shape[0]:
+            shape = list(sqrt_cov.shape)
+            shape[0] = mean.shape[0]
+            shape = tuple(shape)
+            sqrt_cov = sqrt_cov.expand(shape)
+        if expand and len(sqrt_cov.shape) <= 2:
             sqrt_cov = th.diag_embed(sqrt_cov)
         return mean, sqrt_cov
 
