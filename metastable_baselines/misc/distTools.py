@@ -124,6 +124,8 @@ def _sqrt_to_chol(cov_sqrt):
         cov_sqrt = th.diag_embed(cov_sqrt)
 
     cov = th.bmm(cov_sqrt.mT, cov_sqrt)
+    cov += th.eye(cov.shape[-1]).expand(cov.shape)*(1e-6)
+
     chol = th.linalg.cholesky(cov)
 
     if vec:

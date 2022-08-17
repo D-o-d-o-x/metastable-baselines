@@ -232,8 +232,11 @@ class UniversalGaussianDistribution(SB3_Distribution):
 
         if nobatch:
             cov = th.mm(cov_sqrt.mT, cov_sqrt)
+            cov += th.eye(cov.shape[-1])*(self.epsilon)
         else:
             cov = th.bmm(cov_sqrt.mT, cov_sqrt)
+            cov += th.eye(cov.shape[-1]).expand(cov.shape)*(self.epsilon)
+
         chol = th.linalg.cholesky(cov)
 
         if vec:
