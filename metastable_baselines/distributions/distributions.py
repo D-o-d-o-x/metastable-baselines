@@ -367,7 +367,7 @@ class UniversalGaussianDistribution(SB3_Distribution):
             return (th.mm(latent_sde, self.exploration_mat) @ chol)[0]
         p = self.distribution
         if isinstance(p, th.distributions.Normal) or isinstance(p, th.distributions.Independent):
-            chol = p.stddev
+            chol = th.diag_embed(self.distribution.stddev)
         elif isinstance(p, th.distributions.MultivariateNormal):
             chol = p.scale_tril
 
