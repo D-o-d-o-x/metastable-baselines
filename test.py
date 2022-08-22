@@ -24,8 +24,8 @@ def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=1_000_000, showRes=Tru
     ppo = PPO(
         MlpPolicyPPO,
         env,
-        projection=KLProjectionLayer(trust_region_coeff=0.01),
-        policy_kwargs={'dist_kwargs': {'neural_strength': Strength.SCALAR, 'cov_strength': Strength.DIAG, 'parameterization_type':
+        projection=BaseProjectionLayer(), # KLProjectionLayer(trust_region_coeff=0.01),
+        policy_kwargs={'dist_kwargs': {'neural_strength': Strength.NONE, 'cov_strength': Strength.DIAG, 'parameterization_type':
                        ParametrizationType.NONE, 'enforce_positive_type': EnforcePositiveType.ABS, 'prob_squashing_type': ProbSquashingType.NONE}},
         verbose=0,
         tensorboard_log=root_path+"/logs_tb/" +
@@ -37,7 +37,7 @@ def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=1_000_000, showRes=Tru
         ent_coef=0.1,  # 0.1
         vf_coef=0.5,
         use_sde=use_sde,  # False
-        clip_range=1  # 0.2,
+        clip_range=0.2 # 1  # 0.2,
     )
     # trl_frob = PPO(
     #    MlpPolicy,
@@ -145,9 +145,9 @@ def testModel(model, timesteps, showRes=False, saveModel=False, n_eval_episodes=
 
 
 if __name__ == '__main__':
-    # main('LunarLanderContinuous-v2')
+    main('LunarLanderContinuous-v2')
     # main('ColumbusJustState-v0')
     # main('ColumbusStateWithBarriers-v0')
     # full('ColumbusEasierObstacles-v0')
-    main('ColumbusSingle-v0')
+    # main('ColumbusSingle-v0')
     # full('LunarLanderContinuous-v2')
