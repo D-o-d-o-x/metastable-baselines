@@ -101,7 +101,7 @@ class ActorCriticPolicy(BasePolicy):
         optimizer_class: Type[th.optim.Optimizer] = th.optim.Adam,
         optimizer_kwargs: Optional[Dict[str, Any]] = None,
         dist_kwargs: Optional[Dict[str, Any]] = None,
-        sqrt_induced_gaussian=False,
+        sqrt_induced_gaussian: bool = False,
     ):
 
         if optimizer_kwargs is None:
