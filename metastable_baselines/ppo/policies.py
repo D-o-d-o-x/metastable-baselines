@@ -79,8 +79,6 @@ class ActorCriticPolicy(BasePolicy):
         excluding the learning rate, to pass to the optimizer
     """
 
-    # TODO: Allow passing of dist_kwargs into dist
-
     def __init__(
         self,
         observation_space: gym.spaces.Space,

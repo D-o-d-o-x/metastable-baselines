@@ -15,18 +15,21 @@ import columbus
 
 from metastable_baselines.distributions import Strength, ParametrizationType, EnforcePositiveType, ProbSquashingType
 
+import torch as th
+
 root_path = '.'
 
 
 def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=1_000_000, showRes=True, saveModel=True, n_eval_episodes=0):
     env = gym.make(env_name)
     use_sde = False
+    # th.autograd.set_detect_anomaly(True)
     ppo = PPO(
         MlpPolicyPPO,
         env,
-        projection=BaseProjectionLayer(), # KLProjectionLayer(trust_region_coeff=0.01),
-        policy_kwargs={'dist_kwargs': {'neural_strength': Strength.NONE, 'cov_strength': Strength.DIAG, 'parameterization_type':
-                       ParametrizationType.NONE, 'enforce_positive_type': EnforcePositiveType.ABS, 'prob_squashing_type': ProbSquashingType.NONE}},
+        projection=BaseProjectionLayer(),  # KLProjectionLayer(trust_region_coeff=0.01),
+        policy_kwargs={'dist_kwargs': {'neural_strength': Strength.NONE, 'cov_strength': Strength.FULL, 'parameterization_type':
+                       ParametrizationType.CHOL, 'enforce_positive_type': EnforcePositiveType.ABS, 'prob_squashing_type': ProbSquashingType.NONE}},
         verbose=0,
         tensorboard_log=root_path+"/logs_tb/" +
         env_name+"/ppo"+(['', '_sde'][use_sde])+"/",
@@ -37,7 +40,7 @@ def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=1_000_000, showRes=Tru
         ent_coef=0.1,  # 0.1
         vf_coef=0.5,
         use_sde=use_sde,  # False
-        clip_range=0.2 # 1  # 0.2,
+        clip_range=None  # 1  # 0.2,
     )
     # trl_frob = PPO(
     #    MlpPolicy,

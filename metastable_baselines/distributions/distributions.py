@@ -200,7 +200,6 @@ class UniversalGaussianDistribution(SB3_Distribution):
 
         assert std_init >= 0.0, "std can not be initialized to a negative value."
 
-        # TODO: Implement SDE
         self.latent_sde_dim = latent_sde_dim
 
         mean_actions = nn.Linear(latent_dim, self.action_dim)
@@ -348,7 +347,6 @@ class UniversalGaussianDistribution(SB3_Distribution):
 
     def get_noise(self, latent_sde: th.Tensor) -> th.Tensor:
         latent_sde = latent_sde if self.learn_features else latent_sde.detach()
-        # # TODO: Good idea?
         latent_sde = th.nn.functional.normalize(latent_sde, dim=-1)
         # Default case: only one exploration matrix
         if len(latent_sde) == 1 or len(latent_sde) != len(self.exploration_matrices):
@@ -579,7 +577,6 @@ class CholNet(nn.Module):
                                                                         dim2=-1)).diag_embed() + chol.triu(1)
 
     def string(self):
-        # TODO
         return '<CholNet />'
 
 
