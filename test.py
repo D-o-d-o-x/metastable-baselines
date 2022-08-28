@@ -27,9 +27,10 @@ def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=1_000_000, showRes=Tru
     ppo = PPO(
         MlpPolicyPPO,
         env,
-        projection=BaseProjectionLayer(),  # KLProjectionLayer(trust_region_coeff=0.01),
-        policy_kwargs={'dist_kwargs': {'neural_strength': Strength.NONE, 'cov_strength': Strength.FULL, 'parameterization_type':
-                       ParametrizationType.CHOL, 'enforce_positive_type': EnforcePositiveType.ABS, 'prob_squashing_type': ProbSquashingType.NONE}},
+        # KLProjectionLayer(trust_region_coeff=0.01),
+        projection=KLProjectionLayer(trust_region_coeff=0.01),
+        policy_kwargs={'dist_kwargs': {'neural_strength': Strength.NONE, 'cov_strength': Strength.DIAG, 'parameterization_type':
+                       ParametrizationType.NONE, 'enforce_positive_type': EnforcePositiveType.ABS, 'prob_squashing_type': ProbSquashingType.NONE}},
         verbose=0,
         tensorboard_log=root_path+"/logs_tb/" +
         env_name+"/ppo"+(['', '_sde'][use_sde])+"/",
