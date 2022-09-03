@@ -41,6 +41,7 @@ def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=1_000_000, showRes=Tru
         #ent_coef=0.1,  # 0.1
         #vf_coef=0.5,
         use_sde=use_sde,  # False
+        sde_sample_freq=8,
         #clip_range=None  # 1  # 0.2,
     )
     # trl_frob = PPO(

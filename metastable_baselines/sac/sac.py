@@ -262,14 +262,10 @@ class SAC(OffPolicyAlgorithm):
             latent_pi = act.latent_pi(features)
             mean_actions = act.mu_net(latent_pi)
 
-            if self.use_sde:
-                chol = act.chol_net(latent_pi)
-            else:
-                # Unstructured exploration (Original implementation)
-                chol = act.chol_net(latent_pi)
-                # Original Implementation to cap the standard deviation
-                chol = th.clamp(chol, LOG_STD_MIN, LOG_STD_MAX)
-                act.chol = chol
+            chol = act.chol_net(latent_pi)
+            # Original Implementation to cap the standard deviation
+            chol = th.clamp(chol, LOG_STD_MIN, LOG_STD_MAX)
+            act.chol = chol
 
             act_dist = self.actor.action_dist
             # internal A
