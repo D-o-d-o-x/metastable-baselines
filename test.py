@@ -22,26 +22,26 @@ root_path = '.'
 
 def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=1_000_000, showRes=True, saveModel=True, n_eval_episodes=0):
     env = gym.make(env_name)
-    use_sde = False
+    use_sde = True
     # th.autograd.set_detect_anomaly(True)
-    ppo = PPO(
-        MlpPolicyPPO,
+    sac = SAC(
+        MlpPolicySAC,
         env,
         # KLProjectionLayer(trust_region_coeff=0.01),
-        projection=WassersteinProjectionLayer(trust_region_coeff=0.01),
+        #projection=WassersteinProjectionLayer(trust_region_coeff=0.01),
         policy_kwargs={'dist_kwargs': {'neural_strength': Strength.NONE, 'cov_strength': Strength.DIAG, 'parameterization_type':
                        ParametrizationType.NONE, 'enforce_positive_type': EnforcePositiveType.ABS, 'prob_squashing_type': ProbSquashingType.NONE}},
         verbose=0,
         tensorboard_log=root_path+"/logs_tb/" +
-        env_name+"/ppo"+(['', '_sde'][use_sde])+"/",
+        env_name+"/sac"+(['', '_sde'][use_sde])+"/",
         learning_rate=3e-4,  # 3e-4,
         gamma=0.99,
-        gae_lambda=0.95,
-        normalize_advantage=True,
-        ent_coef=0.1,  # 0.1
-        vf_coef=0.5,
+        #gae_lambda=0.95,
+        #normalize_advantage=True,
+        #ent_coef=0.1,  # 0.1
+        #vf_coef=0.5,
         use_sde=use_sde,  # False
-        clip_range=None  # 1  # 0.2,
+        #clip_range=None  # 1  # 0.2,
     )
     # trl_frob = PPO(
     #    MlpPolicy,
@@ -60,8 +60,8 @@ def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=1_000_000, showRes=Tru
     #    clip_range=2,  # 0.2
     # )
 
-    print('PPO:')
-    testModel(ppo, timesteps, showRes,
+    print('SAC:')
+    testModel(sac, timesteps, showRes,
               saveModel, n_eval_episodes)
     # print('TRL_frob:')
     # testModel(trl_frob, timesteps, showRes,

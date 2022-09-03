@@ -262,9 +262,8 @@ class SAC(OffPolicyAlgorithm):
             latent_pi = act.latent_pi(features)
             mean_actions = act.mu_net(latent_pi)
 
-            # TODO: Allow contextual covariance with sde
             if self.use_sde:
-                chol = act.chol
+                chol = act.chol_net(latent_pi)
             else:
                 # Unstructured exploration (Original implementation)
                 chol = act.chol_net(latent_pi)
@@ -275,8 +274,8 @@ class SAC(OffPolicyAlgorithm):
             act_dist = self.actor.action_dist
             # internal A
             if self.use_sde:
-                actions_pi = self.actions_from_params(
-                    mean_actions, chol, latent_pi)  # latent_pi = latent_sde
+                actions_pi = act_dist.actions_from_params(
+                    mean_actions, chol, latent_sde=latent_pi)  # latent_pi = latent_sde
             else:
                 actions_pi = act_dist.actions_from_params(
                     mean_actions, chol)

@@ -320,12 +320,12 @@ class UniversalGaussianDistribution(SB3_Distribution):
         self.gaussian_actions = mode
         return self.prob_squashing_type.apply(mode)
 
-    def actions_from_params(self, mean_actions: th.Tensor, log_std: th.Tensor, deterministic: bool = False, latent_pi=None) -> th.Tensor:
+    def actions_from_params(self, mean_actions: th.Tensor, log_std: th.Tensor, deterministic: bool = False, latent_sde=None) -> th.Tensor:
         # Update the proba distribution
-        self.proba_distribution(mean_actions, log_std, latent_pi=latent_pi)
+        self.proba_distribution(mean_actions, log_std, latent_sde=latent_sde)
         return self.get_actions(deterministic=deterministic)
 
-    def log_prob_from_params(self, mean_actions: th.Tensor, log_std: th.Tensor) -> Tuple[th.Tensor, th.Tensor]:
+    def log_prob_from_params(self, mean_actions: th.Tensor, log_std: th.Tensor, latent_sde=None) -> Tuple[th.Tensor, th.Tensor]:
         """
         Compute the log probability of taking an action
         given the distribution parameters.
@@ -334,7 +334,8 @@ class UniversalGaussianDistribution(SB3_Distribution):
         :param log_std:
         :return:
         """
-        actions = self.actions_from_params(mean_actions, log_std)
+        actions = self.actions_from_params(
+            mean_actions, log_std, latent_sde=latent_sde)
         log_prob = self.log_prob(actions, self.gaussian_actions)
         return actions, log_prob
 

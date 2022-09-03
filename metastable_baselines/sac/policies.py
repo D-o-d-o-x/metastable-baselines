@@ -167,7 +167,7 @@ class Actor(BasePolicy):
         """
         msg = "get_std() is only available when using gSDE"
         assert isinstance(self.action_dist,
-                          StateDependentNoiseDistribution), msg
+                          StateDependentNoiseDistribution) or (isinstance(self.action_dist, UniversalGaussianDistribution) and self.action_dist.use_sde), msg
         return self.chol
 
     def reset_noise(self, n_envs: int = 1) -> None:
@@ -199,12 +199,13 @@ class Actor(BasePolicy):
         latent_pi = self.latent_pi(features)
         mean_actions = self.mu_net(latent_pi)
 
-        if self.use_sde:
-            return mean_actions, self.chol, dict(latent_sde=latent_pi)
         # Unstructured exploration (Original implementation)
         chol = self.chol_net(latent_pi)
+        self.chol = chol
         # Original Implementation to cap the standard deviation
-        self.chol = th.clamp(chol, LOG_STD_MIN, LOG_STD_MAX)
+        # self.chol = th.clamp(chol, LOG_STD_MIN, LOG_STD_MAX)
+        if self.use_sde:
+            return mean_actions, self.chol, dict(latent_sde=latent_pi)
         return mean_actions, self.chol, {}
 
     def forward(self, obs: th.Tensor, deterministic: bool = False) -> th.Tensor:
