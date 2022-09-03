@@ -7,6 +7,8 @@ from torch import nn
 from torch.distributions import Normal, Independent, MultivariateNormal
 from math import pi
 
+import givens
+
 from stable_baselines3.common.preprocessing import get_action_dim
 
 from stable_baselines3.common.distributions import sum_independent_dims
@@ -34,9 +36,8 @@ class ParametrizationType(Enum):
     NONE = 0
     CHOL = 1
     SPHERICAL_CHOL = 2
-    # Not (yet?) implemented:
-    # GIVENS = 3
-    # NNLN_EIGEN = 4
+    EIGEN = 3
+    EIGEN_RAW = 4
 
 
 class EnforcePositiveType(Enum):
@@ -382,6 +383,9 @@ class CholNet(nn.Module):
 
         self._flat_chol_len = action_dim * (action_dim + 1) // 2
 
+        self._givens_rotator = givens.Rotation(action_dim)
+        self._givens_ident = th.eye(action_dim)
+
         # Yes, this is ugly.
         # But I don't know how this mess could be elegantly abstracted away...
 
@@ -493,6 +497,10 @@ class CholNet(nn.Module):
             return self._flat_chol_len
         elif self.par_type == ParametrizationType.SPHERICAL_CHOL:
             return self._flat_chol_len
+        elif self.par_type == ParametrizationType.EIGEN:
+            return self.action_dim * 2
+        elif self.par_type == ParametrizationType.EIGEN_BIJECT:
+            return self.action_dim * 2
         raise Exception()
 
     def _parameterize_full(self, params):
@@ -500,6 +508,10 @@ class CholNet(nn.Module):
             return self._chol_from_flat(params)
         elif self.par_type == ParametrizationType.SPHERICAL_CHOL:
             return self._chol_from_flat_sphe_chol(params)
+        elif self.par_type == ParametrizationType.EIGEN:
+            return self._chol_from_givens_params(params, True)
+        elif self.par_type == ParametrizationType.EIGEN_RAW:
+            return self._chol_from_givens_params(params, False)
         raise Exception()
 
     def _chol_from_flat(self, flat_chol):
@@ -575,6 +587,24 @@ class CholNet(nn.Module):
             return self._ensure_positive_func(chol)
         return chol.tril(-1) + self._ensure_positive_func(chol.diagonal(dim1=-2,
                                                                         dim2=-1)).diag_embed() + chol.triu(1)
+
+    def _chol_from_givens_params(self, params, bijection=False):
+        theta, eigenv = params[:self.action_dim], params[self.action_dim:]
+
+        eigenv = self._ensure_positive_func(eigenv)
+
+        if bijection:
+            eigenv = th.cumsum(eigenv, -1)
+            # reverse order, oh well...
+
+        self._givens_rot.theta = theta
+        Q = self._givens_rotator(self._givens_ident)
+        Qinv = Q.transpose(dim0=-2, dim1=-1)
+
+        cov = Q * th.diag(eigenv) * Qinv
+        chol = th.linalg.cholesky(cov)
+
+        return chol
 
     def string(self):
         return '<CholNet />'
