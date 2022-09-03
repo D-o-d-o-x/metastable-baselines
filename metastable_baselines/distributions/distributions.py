@@ -7,7 +7,7 @@ from torch import nn
 from torch.distributions import Normal, Independent, MultivariateNormal
 from math import pi
 
-import givens
+from misc import givens
 
 from stable_baselines3.common.preprocessing import get_action_dim
 
