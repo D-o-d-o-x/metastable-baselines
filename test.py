@@ -28,7 +28,7 @@ def main(env_name='ColumbusCandyland_Aux10-v0', timesteps=1_000_000, showRes=Tru
         MlpPolicyPPO,
         env,
         # KLProjectionLayer(trust_region_coeff=0.01),
-        projection=KLProjectionLayer(trust_region_coeff=0.01),
+        projection=WassersteinProjectionLayer(trust_region_coeff=0.01),
         policy_kwargs={'dist_kwargs': {'neural_strength': Strength.NONE, 'cov_strength': Strength.DIAG, 'parameterization_type':
                        ParametrizationType.NONE, 'enforce_positive_type': EnforcePositiveType.ABS, 'prob_squashing_type': ProbSquashingType.NONE}},
         verbose=0,
