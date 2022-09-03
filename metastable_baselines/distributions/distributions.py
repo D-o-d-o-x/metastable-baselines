@@ -7,8 +7,6 @@ from torch import nn
 from torch.distributions import Normal, Independent, MultivariateNormal
 from math import pi
 
-from misc import givens
-
 from stable_baselines3.common.preprocessing import get_action_dim
 
 from stable_baselines3.common.distributions import sum_independent_dims
@@ -23,6 +21,7 @@ from stable_baselines3.common.distributions import DiagGaussianDistribution
 
 from ..misc.tensor_ops import fill_triangular
 from ..misc.tanhBijector import TanhBijector
+from ..misc import givens
 
 
 class Strength(Enum):
