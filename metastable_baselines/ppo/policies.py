@@ -37,7 +37,7 @@ from stable_baselines3.common.torch_layers import (
 
 from stable_baselines3.common.preprocessing import get_action_dim
 
-from metastable_baselines.projections.w2_projection_layer import WassersteinProjectionLayer
+from metastable_projections.projections.w2_projection_layer import WassersteinProjectionLayer
 
 from ..distributions import UniversalGaussianDistribution, make_proba_distribution
 from ..misc.distTools import get_mean_and_chol

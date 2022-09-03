@@ -16,10 +16,10 @@ from metastable_baselines.sac.policies import CnnPolicy, MlpPolicy, MultiInputPo
 
 from ..misc.distTools import new_dist_like
 
-from ..projections.base_projection_layer import BaseProjectionLayer
-from ..projections.frob_projection_layer import FrobeniusProjectionLayer
-from ..projections.w2_projection_layer import WassersteinProjectionLayer
-from ..projections.kl_projection_layer import KLProjectionLayer
+from metastable_projections.projections.base_projection_layer import BaseProjectionLayer
+from metastable_projections.projections.frob_projection_layer import FrobeniusProjectionLayer
+from metastable_projections.projections.w2_projection_layer import WassersteinProjectionLayer
+from metastable_projections.projections.kl_projection_layer import KLProjectionLayer
 
 
 from ..misc.rollout_buffer import GaussianRolloutCollectorAuxclass

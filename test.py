@@ -10,7 +10,7 @@ from metastable_baselines.ppo import PPO
 from metastable_baselines.sac import SAC
 from metastable_baselines.ppo.policies import MlpPolicy as MlpPolicyPPO
 from metastable_baselines.sac.policies import MlpPolicy as MlpPolicySAC
-from metastable_baselines.projections import BaseProjectionLayer, FrobeniusProjectionLayer, WassersteinProjectionLayer, KLProjectionLayer
+from metastable_projections.projections import BaseProjectionLayer, FrobeniusProjectionLayer, WassersteinProjectionLayer, KLProjectionLayer
 import columbus
 
 from metastable_baselines.distributions import Strength, ParametrizationType, EnforcePositiveType, ProbSquashingType
