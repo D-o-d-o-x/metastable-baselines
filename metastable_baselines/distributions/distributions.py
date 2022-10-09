@@ -594,7 +594,7 @@ class CholNet(nn.Module):
             eigenv = th.cumsum(eigenv, -1)
             # reverse order, oh well...
 
-        self._givens_rot.theta = theta
+        self._givens_rotator.theta = theta
         Q = self._givens_rotator(self._givens_ident)
         Qinv = Q.transpose(dim0=-2, dim1=-1)
 
