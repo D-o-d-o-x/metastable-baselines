@@ -59,8 +59,3 @@ class Rotation(nn.Module):
         for idx, (i, j) in reversed(list(enumerate(itertools.combinations(range(self.D), 2)))):
             x = torch.matmul(x, G_transpose(self.D, i, j, -self.theta[idx]))
         return x
-
-
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
