@@ -136,6 +136,8 @@ class ActorCriticPolicy(BasePolicy):
         self.normalize_images = normalize_images
         self.log_std_init = log_std_init
         # Keyword arguments for gSDE distribution
+        if dist_kwargs == None:
+            dist_kwargs = {}
         if use_sde:
             add_dist_kwargs = {
                 'use_sde': True,
